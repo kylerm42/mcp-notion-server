@@ -160,14 +160,14 @@ export async function startServer(
             break;
           }
 
-          case "notion_query_database": {
+          case "notion_query_data_source": {
             const args = request.params
-              .arguments as unknown as args.QueryDatabaseArgs;
-            if (!args.database_id) {
-              throw new Error("Missing required argument: database_id");
+              .arguments as unknown as args.QueryDataSourceArgs;
+            if (!args.data_source_id) {
+              throw new Error("Missing required argument: data_source_id");
             }
-            response = await notionClient.queryDatabase(
-              args.database_id,
+            response = await notionClient.queryDataSource(
+              args.data_source_id,
               args.filter,
               args.sorts,
               args.start_cursor,
@@ -200,18 +200,44 @@ export async function startServer(
             response = await notionClient.updateDatabase(
               args.database_id,
               args.title,
-              args.description,
+              args.icon,
+              args.cover,
+              args.parent,
+              args.is_inline
+            );
+            break;
+          }
+
+          case "notion_create_data_source_item": {
+            const args = request.params
+              .arguments as unknown as args.CreateDataSourceItemArgs;
+            response = await notionClient.createDataSourceItem(
+              args.data_source_id,
               args.properties
             );
             break;
           }
 
-          case "notion_create_database_item": {
+          case "notion_retrieve_data_source": {
             const args = request.params
-              .arguments as unknown as args.CreateDatabaseItemArgs;
-            response = await notionClient.createDatabaseItem(
-              args.database_id,
-              args.properties
+              .arguments as unknown as args.RetrieveDataSourceArgs;
+            if (!args.data_source_id) {
+              throw new Error("Missing required argument: data_source_id");
+            }
+            response = await notionClient.retrieveDataSource(args.data_source_id);
+            break;
+          }
+
+          case "notion_update_data_source": {
+            const args = request.params
+              .arguments as unknown as args.UpdateDataSourceArgs;
+            if (!args.data_source_id) {
+              throw new Error("Missing required argument: data_source_id");
+            }
+            response = await notionClient.updateDataSource(
+              args.data_source_id,
+              args.properties,
+              args.title
             );
             break;
           }
@@ -312,10 +338,12 @@ export async function startServer(
       schemas.retrieveUserTool,
       schemas.retrieveBotUserTool,
       schemas.createDatabaseTool,
-      schemas.queryDatabaseTool,
+      schemas.queryDataSourceTool,
       schemas.retrieveDatabaseTool,
       schemas.updateDatabaseTool,
-      schemas.createDatabaseItemTool,
+      schemas.retrieveDataSourceTool,
+      schemas.updateDataSourceTool,
+      schemas.createDataSourceItemTool,
       schemas.createCommentTool,
       schemas.retrieveCommentsTool,
       schemas.searchTool,

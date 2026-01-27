@@ -26,7 +26,7 @@ export class NotionClientWrapper {
     this.headers = {
       Authorization: `Bearer ${this.notionToken}`,
       "Content-Type": "application/json",
-      "Notion-Version": "2022-06-28",
+      "Notion-Version": "2025-09-03",
     };
   }
 
@@ -108,6 +108,22 @@ export class NotionClientWrapper {
     return response.json();
   }
 
+  /**
+   * Update page property values.
+   * 
+   * Note: This method updates property VALUES (not schemas).
+   * For relation property values, provide an array of page IDs:
+   * ```json
+   * {
+   *   "Projects": {
+   *     "relation": [
+   *       { "id": "page-id-1" },
+   *       { "id": "page-id-2" }
+   *     ]
+   *   }
+   * }
+   * ```
+   */
   async updatePageProperties(
     page_id: string,
     properties: Record<string, any>
@@ -154,12 +170,36 @@ export class NotionClientWrapper {
     return response.json();
   }
 
+  /**
+   * Create a database with an initial data source.
+   * 
+   * IMPORTANT: For relation properties in the schema, use `data_source_id` (not `database_id`).
+   * Example relation property schema:
+   * ```json
+   * {
+   *   "Projects": {
+   *     "type": "relation",
+   *     "relation": {
+   *       "data_source_id": "6c4240a9-a3ce-413e-9fd0-8a51a4d0a49b"
+   *     }
+   *   }
+   * }
+   * ```
+   */
   async createDatabase(
     parent: CreateDatabaseArgs["parent"],
     properties: Record<string, any>,
-    title?: RichTextItemResponse[]
+    title?: RichTextItemResponse[],
+    icon?: Record<string, any>,
+    cover?: Record<string, any>
   ): Promise<DatabaseResponse> {
-    const body = { parent, title, properties };
+    const body: Record<string, any> = {
+      parent,
+      initial_data_source: { properties },
+    };
+    if (title) body.title = title;
+    if (icon) body.icon = icon;
+    if (cover) body.cover = cover;
 
     const response = await fetch(`${this.baseUrl}/databases`, {
       method: "POST",
@@ -170,8 +210,8 @@ export class NotionClientWrapper {
     return response.json();
   }
 
-  async queryDatabase(
-    database_id: string,
+  async queryDataSource(
+    data_source_id: string,
     filter?: Record<string, any>,
     sorts?: Array<{
       property?: string;
@@ -188,7 +228,7 @@ export class NotionClientWrapper {
     if (page_size) body.page_size = page_size;
 
     const response = await fetch(
-      `${this.baseUrl}/databases/${database_id}/query`,
+      `${this.baseUrl}/data_sources/${data_source_id}/query`,
       {
         method: "POST",
         headers: this.headers,
@@ -205,19 +245,36 @@ export class NotionClientWrapper {
       headers: this.headers,
     });
 
+    // Response includes data_sources[] field in API version 2025-09-03
+    return response.json();
+  }
+
+  async retrieveDataSource(data_source_id: string): Promise<any> {
+    const response = await fetch(
+      `${this.baseUrl}/data_sources/${data_source_id}`,
+      {
+        method: "GET",
+        headers: this.headers,
+      }
+    );
+
     return response.json();
   }
 
   async updateDatabase(
     database_id: string,
     title?: RichTextItemResponse[],
-    description?: RichTextItemResponse[],
-    properties?: Record<string, any>
+    icon?: Record<string, any>,
+    cover?: Record<string, any>,
+    parent?: Record<string, any>,
+    is_inline?: boolean
   ): Promise<DatabaseResponse> {
     const body: Record<string, any> = {};
     if (title) body.title = title;
-    if (description) body.description = description;
-    if (properties) body.properties = properties;
+    if (icon) body.icon = icon;
+    if (cover) body.cover = cover;
+    if (parent) body.parent = parent;
+    if (is_inline !== undefined) body.is_inline = is_inline;
 
     const response = await fetch(`${this.baseUrl}/databases/${database_id}`, {
       method: "PATCH",
@@ -228,12 +285,65 @@ export class NotionClientWrapper {
     return response.json();
   }
 
-  async createDatabaseItem(
-    database_id: string,
+  /**
+   * Update data source schema and configuration.
+   * 
+   * IMPORTANT: For relation properties in the schema, use `data_source_id` (not `database_id`).
+   * Example relation property schema:
+   * ```json
+   * {
+   *   "Projects": {
+   *     "type": "relation",
+   *     "relation": {
+   *       "data_source_id": "6c4240a9-a3ce-413e-9fd0-8a51a4d0a49b"
+   *     }
+   *   }
+   * }
+   * ```
+   */
+  async updateDataSource(
+    data_source_id: string,
+    properties?: Record<string, any>,
+    title?: RichTextItemResponse[]
+  ): Promise<any> {
+    const body: Record<string, any> = {};
+    if (properties) body.properties = properties;
+    if (title) body.title = title;
+
+    const response = await fetch(
+      `${this.baseUrl}/data_sources/${data_source_id}`,
+      {
+        method: "PATCH",
+        headers: this.headers,
+        body: JSON.stringify(body),
+      }
+    );
+
+    return response.json();
+  }
+
+  /**
+   * Create a new page (item) in a data source.
+   * 
+   * Note: This method sets property VALUES (not schemas).
+   * For relation property values, provide an array of page IDs:
+   * ```json
+   * {
+   *   "Projects": {
+   *     "relation": [
+   *       { "id": "page-id-1" },
+   *       { "id": "page-id-2" }
+   *     ]
+   *   }
+   * }
+   * ```
+   */
+  async createDataSourceItem(
+    data_source_id: string,
     properties: Record<string, any>
   ): Promise<PageResponse> {
     const body = {
-      parent: { database_id },
+      parent: { type: "data_source_id", data_source_id },
       properties,
     };
 

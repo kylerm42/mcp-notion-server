@@ -5,6 +5,7 @@
 export type NotionObjectType =
   | "page"
   | "database"
+  | "data_source"
   | "block"
   | "list"
   | "user"
@@ -114,8 +115,9 @@ export type PageResponse = {
   url?: string;
   public_url?: string;
   parent: {
-    type: "database_id" | "page_id" | "workspace";
+    type: "database_id" | "data_source_id" | "page_id" | "workspace";
     database_id?: string;
+    data_source_id?: string;
     page_id?: string;
   };
   properties: Record<string, PageProperty>;
@@ -152,6 +154,7 @@ export type DatabaseResponse = {
   };
   archived?: boolean;
   is_inline?: boolean;
+  data_sources?: Array<{ id: string; name?: string }>;
 };
 
 export type DatabasePropertyConfig = {
@@ -161,11 +164,29 @@ export type DatabasePropertyConfig = {
   [key: string]: any;
 };
 
+export interface DataSourceResponse {
+  object: "data_source";
+  id: string;
+  type: "data_source";
+  name?: string;
+  properties: Record<string, any>;
+  database_parent?: {
+    type: "database_id";
+    database_id: string;
+  };
+  created_time?: string;
+  last_edited_time?: string;
+  title?: RichTextItemResponse[];
+  in_trash?: boolean;
+  url?: string;
+}
+
 export type ListResponse = {
   object: "list";
   results: Array<
     | PageResponse
     | DatabaseResponse
+    | DataSourceResponse
     | BlockResponse
     | UserResponse
     | CommentResponse
@@ -209,6 +230,7 @@ export type CommentResponse = {
 export type NotionResponse =
   | PageResponse
   | DatabaseResponse
+  | DataSourceResponse
   | BlockResponse
   | ListResponse
   | UserResponse

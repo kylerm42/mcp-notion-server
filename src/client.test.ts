@@ -26,7 +26,7 @@ const mockTools = [
     inputSchema: mockInputSchema,
   },
   {
-    name: "notion_query_database",
+    name: "notion_query_data_source",
     inputSchema: mockInputSchema,
   },
 ];
@@ -53,7 +53,7 @@ describe("NotionClientWrapper", () => {
     expect((wrapper as any).headers).toEqual({
       Authorization: "Bearer test-token",
       "Content-Type": "application/json",
-      "Notion-Version": "2022-06-28",
+      "Notion-Version": "2025-09-03",
     });
   });
 
@@ -135,15 +135,15 @@ describe("NotionClientWrapper", () => {
     );
   });
 
-  test("should call queryDatabase with correct parameters", async () => {
-    const databaseId = "db123";
+  test("should call queryDataSource with correct parameters", async () => {
+    const dataSourceId = "ds123";
     const filter = { property: "Status", equals: "Done" };
     const sorts = [{ property: "Due Date", direction: "ascending" }];
 
-    await wrapper.queryDatabase(databaseId, filter, sorts);
+    await wrapper.queryDataSource(dataSourceId, filter, sorts);
 
     expect(fetch).toHaveBeenCalledWith(
-      `https://api.notion.com/v1/databases/${databaseId}/query`,
+      `https://api.notion.com/v1/data_sources/${dataSourceId}/query`,
       {
         method: "POST",
         headers: (wrapper as any).headers,
@@ -164,6 +164,114 @@ describe("NotionClientWrapper", () => {
         method: "POST",
         headers: (wrapper as any).headers,
         body: JSON.stringify({ query, filter }),
+      }
+    );
+  });
+
+  test("should call retrieveDatabase with correct parameters", async () => {
+    const databaseId = "db123";
+
+    await wrapper.retrieveDatabase(databaseId);
+
+    expect(fetch).toHaveBeenCalledWith(
+      `https://api.notion.com/v1/databases/${databaseId}`,
+      {
+        method: "GET",
+        headers: (wrapper as any).headers,
+      }
+    );
+  });
+
+  test("should call retrieveDataSource with correct parameters", async () => {
+    const dataSourceId = "ds123";
+
+    await wrapper.retrieveDataSource(dataSourceId);
+
+    expect(fetch).toHaveBeenCalledWith(
+      `https://api.notion.com/v1/data_sources/${dataSourceId}`,
+      {
+        method: "GET",
+        headers: (wrapper as any).headers,
+      }
+    );
+  });
+
+  test("should call updateDatabase with correct parameters", async () => {
+    const databaseId = "db123";
+    const title = [{ type: "text", text: { content: "New Title" } }];
+    const icon = { type: "emoji", emoji: "📚" };
+
+    await wrapper.updateDatabase(databaseId, title, icon);
+
+    expect(fetch).toHaveBeenCalledWith(
+      `https://api.notion.com/v1/databases/${databaseId}`,
+      {
+        method: "PATCH",
+        headers: (wrapper as any).headers,
+        body: JSON.stringify({ title, icon }),
+      }
+    );
+  });
+
+  test("should call updateDataSource with correct parameters", async () => {
+    const dataSourceId = "ds123";
+    const properties = {
+      Status: { type: "select", select: { options: [] } },
+    };
+    const title = [{ type: "text", text: { content: "Primary Data Source" } }];
+
+    await wrapper.updateDataSource(dataSourceId, properties, title);
+
+    expect(fetch).toHaveBeenCalledWith(
+      `https://api.notion.com/v1/data_sources/${dataSourceId}`,
+      {
+        method: "PATCH",
+        headers: (wrapper as any).headers,
+        body: JSON.stringify({ properties, title }),
+      }
+    );
+  });
+
+  test("should call createDataSourceItem with correct parameters", async () => {
+    const dataSourceId = "ds123";
+    const properties = {
+      Name: { title: [{ text: { content: "New Item" } }] },
+    };
+
+    await wrapper.createDataSourceItem(dataSourceId, properties);
+
+    expect(fetch).toHaveBeenCalledWith(
+      "https://api.notion.com/v1/pages",
+      {
+        method: "POST",
+        headers: (wrapper as any).headers,
+        body: JSON.stringify({
+          parent: { type: "data_source_id", data_source_id: dataSourceId },
+          properties,
+        }),
+      }
+    );
+  });
+
+  test("should call createDatabase with correct parameters", async () => {
+    const parent = { type: "page_id", page_id: "page123" };
+    const properties = {
+      Name: { title: {} },
+    };
+    const title = [{ type: "text", text: { content: "New Database" } }];
+
+    await wrapper.createDatabase(parent, properties, title);
+
+    expect(fetch).toHaveBeenCalledWith(
+      "https://api.notion.com/v1/databases",
+      {
+        method: "POST",
+        headers: (wrapper as any).headers,
+        body: JSON.stringify({
+          parent,
+          initial_data_source: { properties },
+          title,
+        }),
       }
     );
   });
@@ -195,12 +303,12 @@ describe("NotionClientWrapper", () => {
     test("should filter tools based on enabledTools", () => {
       const enabledToolsSet = new Set([
         "notion_retrieve_block",
-        "notion_query_database",
+        "notion_query_data_source",
       ]);
       const result = filterTools(mockTools, enabledToolsSet);
       expect(result).toEqual([
         { name: "notion_retrieve_block", inputSchema: mockInputSchema },
-        { name: "notion_query_database", inputSchema: mockInputSchema },
+        { name: "notion_query_data_source", inputSchema: mockInputSchema },
       ]);
     });
 
@@ -211,3 +319,45 @@ describe("NotionClientWrapper", () => {
     });
   });
 });
+
+/**
+ * MANUAL INTEGRATION TESTING CHECKLIST (Task 6.3)
+ * 
+ * These tests require manual execution with MCP Inspector:
+ * 
+ * 1. Query data source by ID
+ *    - Use notion_query_data_source with a valid data_source_id
+ *    - Verify response contains pages from the data source
+ * 
+ * 2. Retrieve database to get data source list
+ *    - Use notion_retrieve_database with a database_id
+ *    - Verify response includes data_sources[] array
+ *    - Verify each data source has id and name properties
+ * 
+ * 3. Retrieve specific data source schema
+ *    - Use notion_retrieve_data_source with a data_source_id
+ *    - Verify response includes properties schema
+ * 
+ * 4. Create database with initial data source
+ *    - Use notion_create_database with parent, properties
+ *    - Verify response includes database metadata
+ *    - Verify data_sources[] contains initial data source
+ * 
+ * 5. Create item in data source
+ *    - Use notion_create_data_source_item with data_source_id
+ *    - Verify page created with correct parent type: data_source_id
+ * 
+ * 6. Update database properties
+ *    - Use notion_update_database with title, icon, or cover
+ *    - Verify only database-level properties are updated
+ * 
+ * 7. Update data source schema
+ *    - Use notion_update_data_source with properties
+ *    - Verify schema updated without affecting database properties
+ * 
+ * 8. Search for data sources
+ *    - Use notion_search with filter: {property: "object", value: "data_source"}
+ *    - Verify results contain data source objects
+ * 
+ * Run manual tests with: npm run inspector
+ */

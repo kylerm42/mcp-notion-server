@@ -71,7 +71,7 @@ or
 Read-only tools example (copy-paste friendly):
 
 ```bash
-node build/index.js --enabledTools=notion_retrieve_block,notion_retrieve_block_children,notion_retrieve_page,notion_query_database,notion_retrieve_database,notion_search,notion_list_all_users,notion_retrieve_user,notion_retrieve_bot_user,notion_retrieve_comments
+node build/index.js --enabledTools=notion_retrieve_block,notion_retrieve_block_children,notion_retrieve_page,notion_query_data_source,notion_retrieve_database,notion_retrieve_data_source,notion_search,notion_list_all_users,notion_retrieve_user,notion_retrieve_bot_user,notion_retrieve_comments
 ```
 
 ## Advanced Configuration
@@ -119,13 +119,94 @@ You can control the format on a per-request basis by setting the `format` parame
 - Use `"markdown"` for better readability when only viewing content
 - Use `"json"` when you need to modify the returned content
 
+## Understanding Data Sources (API Version 2025-09-03)
+
+As of API version 2025-09-03, Notion introduced the **data source** concept:
+
+- **Databases** are containers that hold one or more **data sources**
+- **Data sources** are the actual collections of pages/items within a database
+- Each data source has its own schema (set of properties)
+- Most databases have a single data source, but advanced setups may have multiple
+
+### Key Implications
+
+**For querying and creating items:**
+- Use `data_source_id`, not `database_id`
+- Tools: `notion_query_data_source`, `notion_create_data_source_item`
+
+**For database metadata:**
+- Use `database_id` for database-level operations
+- Tools: `notion_retrieve_database`, `notion_update_database`
+
+### How to Get Data Source IDs
+
+**Option 1: Via API (Recommended)**
+```typescript
+// Retrieve database to get list of data sources
+const db = await tools.notion_retrieve_database({
+  database_id: "your-database-id"
+});
+
+// Extract the data source ID
+const dataSourceId = db.data_sources[0].id;  // First data source
+// OR find by name:
+const dataSourceId = db.data_sources.find(ds => ds.name === "Primary")?.id;
+```
+
+**Option 2: Via Notion UI**
+1. Open your database in Notion
+2. Click "⋮⋮⋮" → Settings → Manage data sources
+3. Click "Copy data source ID"
+
+**Typical Workflow:**
+```typescript
+// Step 1: Discover the data source ID (do once, then cache it)
+const db = await tools.notion_retrieve_database({ database_id: "abc123" });
+const DS_ID = db.data_sources[0].id;  // Save this!
+
+// Step 2: Use the data source ID for queries and item creation
+const results = await tools.notion_query_data_source({
+  data_source_id: DS_ID,
+  filter: { property: "Status", select: { equals: "Active" } }
+});
+
+await tools.notion_create_data_source_item({
+  data_source_id: DS_ID,
+  properties: { "Name": { title: [{ text: { content: "New Item" } }] } }
+});
+```
+
 ## Troubleshooting
+
+### Permission Errors
 
 If you encounter permission errors:
 
 1. Ensure the integration has the required permissions.
 2. Verify that the integration is invited to the relevant pages or databases.
 3. Confirm the token and configuration are correctly set in `claude_desktop_config.json`.
+
+### Migration Issues (API Version Upgrade)
+
+If you recently upgraded from an older version of this server:
+
+**"I don't have a data source ID, only a database ID"**
+- Call `notion_retrieve_database` with your database ID
+- The response includes a `data_sources` array with IDs and names
+- Use the `id` field from the data source you want to target
+
+**"My queries are failing after upgrade"**
+- Check if you're using the correct tool name: `notion_query_data_source` (not `notion_query_database`)
+- Ensure you're passing `data_source_id`, not `database_id`
+- Verify the ID is a data source ID (starts with `ds-` typically), not a database ID
+
+**"What happened to notion_query_database?"**
+- Renamed to `notion_query_data_source` to reflect the new API paradigm
+- See [MIGRATION.md](./MIGRATION.md) for a complete migration guide
+
+**"Tool not found" errors**
+- Old tool names are no longer available
+- See the [Quick Reference table in MIGRATION.md](./MIGRATION.md#quick-reference-tool-renames) for name mappings
 
 ## Project Structure
 
@@ -224,64 +305,90 @@ All tools support the following optional parameter:
 
 7. `notion_create_database`
 
-   - Create a new database.
+   - Create a new database with an initial data source for storing pages.
    - Required inputs:
-     - `parent` (object): Parent object of the database.
-     - `properties` (object): Property schema of the database.
+     - `parent` (object): Parent object of the database (page_id, database_id, or workspace).
+     - `properties` (object): Property schema for the initial data source. For relation properties, use `data_source_id` (not `database_id`).
    - Optional inputs:
      - `title` (array): Title of the database as a rich text array.
-   - Returns: Information about the created database.
+     - `icon` (object): Icon object for the database (emoji or external/file URL).
+     - `cover` (object): Cover image object for the database.
+   - Returns: Information about the created database including the initial data source.
 
-8. `notion_query_database`
+8. `notion_query_data_source`
 
-   - Query a database.
+   - Query a data source in Notion to retrieve pages with filtering and sorting.
    - Required inputs:
-     - `database_id` (string): The ID of the database to query.
+     - `data_source_id` (string): The ID of the data source to query.
    - Optional inputs:
-     - `filter` (object): Filter conditions.
-     - `sorts` (array): Sorting conditions.
-     - `start_cursor` (string): Cursor for the next page of results.
+     - `filter` (object): Filter conditions for querying pages.
+     - `sorts` (array): Sort conditions for ordering query results.
+     - `start_cursor` (string): Pagination cursor for next page of results.
      - `page_size` (number, default: 100, max: 100): Number of results to retrieve.
-   - Returns: List of results from the query.
+   - Returns: List of pages from the data source matching the query.
+   - Note: Use `notion_retrieve_database` first to get the `data_source_id` from a database.
 
 9. `notion_retrieve_database`
 
-   - Retrieve information about a specific database.
+   - Retrieve database metadata including list of available data sources.
    - Required inputs:
      - `database_id` (string): The ID of the database to retrieve.
-   - Returns: Detailed information about the database.
+   - Returns: Database information including `data_sources` array with IDs and names.
+   - Use this to discover data source IDs for query and create operations.
 
-10. `notion_update_database`
+10. `notion_retrieve_data_source`
 
-    - Update information about a database.
+    - Retrieve data source schema and metadata.
+    - Required inputs:
+      - `data_source_id` (string): The ID of the data source to retrieve.
+    - Returns: Detailed schema information for the data source including properties configuration.
+
+11. `notion_update_database`
+
+    - Update database-level properties such as title, icon, cover, parent, and inline status.
     - Required inputs:
       - `database_id` (string): The ID of the database to update.
     - Optional inputs:
-      - `title` (array): New title for the database.
-      - `description` (array): New description for the database.
-      - `properties` (object): Updated property schema.
+      - `title` (array): New title for the database as rich text array.
+      - `icon` (object): Icon object for the database (emoji or external/file URL).
+      - `cover` (object): Cover image object for the database.
+      - `parent` (object): Parent object to move the database.
+      - `is_inline` (boolean): Whether the database is displayed inline on a page.
     - Returns: Information about the updated database.
+    - Note: For updating schema/properties, use `notion_update_data_source` instead.
 
-11. `notion_create_database_item`
+12. `notion_update_data_source`
 
-    - Create a new item in a Notion database.
+    - Update data source properties and schema configuration.
     - Required inputs:
-      - `database_id` (string): The ID of the database to add the item to.
-      - `properties` (object): The properties of the new item. These should match the database schema.
-    - Returns: Information about the newly created item.
-
-12. `notion_search`
-
-    - Search pages or databases by title.
+      - `data_source_id` (string): The ID of the data source to update.
     - Optional inputs:
-      - `query` (string): Text to search for in page or database titles.
-      - `filter` (object): Criteria to limit results to either only pages or only databases.
-      - `sort` (object): Criteria to sort the results
+      - `properties` (object): Updated property schema. For relation properties, use `data_source_id` (not `database_id`).
+      - `title` (array): New title for the data source as rich text array.
+    - Returns: Information about the updated data source.
+
+13. `notion_create_data_source_item`
+
+    - Create a new page in a Notion data source.
+    - Required inputs:
+      - `data_source_id` (string): The ID of the data source to add the page to.
+      - `properties` (object): Properties of the new page. These should match the data source schema. For relation property values, provide an array of page IDs: `{"relation": [{"id": "page-id-1"}]}`.
+    - Returns: Information about the newly created page.
+    - Note: Use `notion_retrieve_database` first to get the `data_source_id` from a database.
+
+14. `notion_search`
+
+    - Search pages or data sources by title in Notion.
+    - Optional inputs:
+      - `query` (string): Text to search for in page or data source titles.
+      - `filter` (object): Filter results by object type. Set `property: "object"` and `value: "page"` or `value: "data_source"`.
+      - `sort` (object): Sort order of results.
       - `start_cursor` (string): Pagination start cursor.
       - `page_size` (number, default: 100, max: 100): Number of results to retrieve.
-    - Returns: List of matching pages or databases.
+    - Returns: List of matching pages or data sources.
+    - Note: Databases may contain multiple data sources, which are returned as separate results.
 
-13. `notion_list_all_users`
+15. `notion_list_all_users`
 
     - List all users in the Notion workspace.
     - Note: This function requires upgrading to the Notion Enterprise plan and using an Organization API key to avoid permission errors.
@@ -290,7 +397,7 @@ All tools support the following optional parameter:
       - page_size (number, max: 100): Number of users to retrieve.
     - Returns: A paginated list of all users in the workspace.
 
-14. `notion_retrieve_user`
+16. `notion_retrieve_user`
 
     - Retrieve a specific user by user_id in Notion.
     - Note: This function requires upgrading to the Notion Enterprise plan and using an Organization API key to avoid permission errors.
@@ -298,12 +405,12 @@ All tools support the following optional parameter:
       - user_id (string): The ID of the user to retrieve.
     - Returns: Detailed information about the specified user.
 
-15. `notion_retrieve_bot_user`
+17. `notion_retrieve_bot_user`
 
     - Retrieve the bot user associated with the current token in Notion.
     - Returns: Information about the bot user, including details of the person who authorized the integration.
 
-16. `notion_create_comment`
+18. `notion_create_comment`
 
     - Create a comment in Notion.
     - Requires the integration to have 'insert comment' capabilities.
@@ -315,7 +422,7 @@ All tools support the following optional parameter:
       - `discussion_id` (string): An existing discussion thread ID.
     - Returns: Information about the created comment.
 
-17. `notion_retrieve_comments`
+19. `notion_retrieve_comments`
     - Retrieve a list of unresolved comments from a Notion page or block.
     - Requires the integration to have 'read comment' capabilities.
     - Required inputs:

@@ -150,7 +150,7 @@ export const updatePagePropertiesTool: Tool = {
       properties: {
         type: "object",
         description:
-          "Properties to update. These correspond to the columns or fields in the database.",
+          "Properties to update. These correspond to the columns or fields in the database. For relation property values, provide an array of page IDs: {\"relation\": [{\"id\": \"page-id-1\"}]}",
       },
       format: formatParameter,
     },
@@ -216,13 +216,13 @@ export const retrieveBotUserTool: Tool = {
 // Databases tools
 export const createDatabaseTool: Tool = {
   name: "notion_create_database",
-  description: "Create a database in Notion",
+  description: "Create a database in Notion with an initial data source for storing pages",
   inputSchema: {
     type: "object",
     properties: {
       parent: {
         type: "object",
-        description: "Parent object of the database",
+        description: "Parent object of the database (page_id, database_id, or workspace)",
       },
       title: {
         type: "array",
@@ -233,7 +233,25 @@ export const createDatabaseTool: Tool = {
       properties: {
         type: "object",
         description:
-          "Property schema of database. The keys are the names of properties as they appear in Notion and the values are property schema objects.",
+          "Property schema for the initial data source. Keys are property names and values are property schema objects. For relation properties, use 'data_source_id' (not 'database_id') to specify the target data source.",
+      },
+      icon: {
+        type: "object",
+        description: "Icon object for the database (emoji or external/file URL).",
+      },
+      cover: {
+        type: "object",
+        description: "Cover image object for the database.",
+      },
+      initial_data_source: {
+        type: "object",
+        description: "Configuration for the initial data source created with the database.",
+        properties: {
+          properties: {
+            type: "object",
+            description: "Property schema for the data source.",
+          },
+        },
       },
       format: formatParameter,
     },
@@ -241,23 +259,23 @@ export const createDatabaseTool: Tool = {
   },
 };
 
-export const queryDatabaseTool: Tool = {
-  name: "notion_query_database",
-  description: "Query a database in Notion",
+export const queryDataSourceTool: Tool = {
+  name: "notion_query_data_source",
+  description: "Query a data source in Notion to retrieve pages with filtering and sorting",
   inputSchema: {
     type: "object",
     properties: {
-      database_id: {
+      data_source_id: {
         type: "string",
-        description: "The ID of the database to query." + commonIdDescription,
+        description: "The ID of the data source to query." + commonIdDescription,
       },
       filter: {
         type: "object",
-        description: "Filter conditions",
+        description: "Filter conditions for querying pages in the data source",
       },
       sorts: {
         type: "array",
-        description: "Sort conditions",
+        description: "Sort conditions for ordering query results",
         items: {
           type: "object",
           properties: {
@@ -281,13 +299,13 @@ export const queryDatabaseTool: Tool = {
       },
       format: formatParameter,
     },
-    required: ["database_id"],
+    required: ["data_source_id"],
   },
 };
 
 export const retrieveDatabaseTool: Tool = {
   name: "notion_retrieve_database",
-  description: "Retrieve a database in Notion",
+  description: "Retrieve database metadata including list of available data sources",
   inputSchema: {
     type: "object",
     properties: {
@@ -304,7 +322,7 @@ export const retrieveDatabaseTool: Tool = {
 
 export const updateDatabaseTool: Tool = {
   name: "notion_update_database",
-  description: "Update a database in Notion",
+  description: "Update database-level properties such as title, icon, cover, parent, and inline status",
   inputSchema: {
     type: "object",
     properties: {
@@ -315,19 +333,24 @@ export const updateDatabaseTool: Tool = {
       title: {
         type: "array",
         description:
-          "An array of rich text objects that represents the title of the database that is displayed in the Notion UI.",
+          "An array of rich text objects representing the database title in the Notion UI.",
         items: richTextObjectSchema,
       },
-      description: {
-        type: "array",
-        description:
-          "An array of rich text objects that represents the description of the database that is displayed in the Notion UI.",
-        items: richTextObjectSchema,
-      },
-      properties: {
+      icon: {
         type: "object",
-        description:
-          "The properties of a database to be changed in the request, in the form of a JSON object.",
+        description: "Icon object for the database (emoji or external/file URL).",
+      },
+      cover: {
+        type: "object",
+        description: "Cover image object for the database.",
+      },
+      parent: {
+        type: "object",
+        description: "Parent object to move the database (page_id, database_id, or workspace).",
+      },
+      is_inline: {
+        type: "boolean",
+        description: "Whether the database is displayed inline on a page.",
       },
       format: formatParameter,
     },
@@ -335,25 +358,70 @@ export const updateDatabaseTool: Tool = {
   },
 };
 
-export const createDatabaseItemTool: Tool = {
-  name: "notion_create_database_item",
-  description: "Create a new item (page) in a Notion database",
+export const createDataSourceItemTool: Tool = {
+  name: "notion_create_data_source_item",
+  description: "Create a new page in a Notion data source",
   inputSchema: {
     type: "object",
     properties: {
-      database_id: {
+      data_source_id: {
         type: "string",
         description:
-          "The ID of the database to add the item to." + commonIdDescription,
+          "The ID of the data source to add the page to." + commonIdDescription,
       },
       properties: {
         type: "object",
         description:
-          "Properties of the new database item. These should match the database schema.",
+          "Properties of the new page. These should match the data source schema. For relation property values, provide an array of page IDs: {\"relation\": [{\"id\": \"page-id-1\"}]}",
       },
       format: formatParameter,
     },
-    required: ["database_id", "properties"],
+    required: ["data_source_id", "properties"],
+  },
+};
+
+export const retrieveDataSourceTool: Tool = {
+  name: "notion_retrieve_data_source",
+  description: "Retrieve data source schema and metadata",
+  inputSchema: {
+    type: "object",
+    properties: {
+      data_source_id: {
+        type: "string",
+        description:
+          "The ID of the data source to retrieve." + commonIdDescription,
+      },
+      format: formatParameter,
+    },
+    required: ["data_source_id"],
+  },
+};
+
+export const updateDataSourceTool: Tool = {
+  name: "notion_update_data_source",
+  description: "Update data source properties and schema configuration",
+  inputSchema: {
+    type: "object",
+    properties: {
+      data_source_id: {
+        type: "string",
+        description:
+          "The ID of the data source to update." + commonIdDescription,
+      },
+      properties: {
+        type: "object",
+        description:
+          "Property schema updates for the data source. Keys are property names and values are property schema objects. For relation properties, use 'data_source_id' (not 'database_id') to specify the target data source.",
+      },
+      title: {
+        type: "array",
+        description:
+          "An array of rich text objects representing the data source title.",
+        items: richTextObjectSchema,
+      },
+      format: formatParameter,
+    },
+    required: ["data_source_id"],
   },
 };
 
@@ -426,17 +494,17 @@ export const retrieveCommentsTool: Tool = {
 // Search tool
 export const searchTool: Tool = {
   name: "notion_search",
-  description: "Search pages or databases by title in Notion",
+  description: "Search pages or data sources by title in Notion. Note that databases may contain multiple data sources, which are returned as separate results.",
   inputSchema: {
     type: "object",
     properties: {
       query: {
         type: "string",
-        description: "Text to search for in page or database titles",
+        description: "Text to search for in page or data source titles",
       },
       filter: {
         type: "object",
-        description: "Filter results by object type (page or database)",
+        description: "Filter results by object type (page or data_source)",
         properties: {
           property: {
             type: "string",
@@ -444,7 +512,7 @@ export const searchTool: Tool = {
           },
           value: {
             type: "string",
-            description: "Either 'page' or 'database'",
+            description: "Either 'page' or 'data_source'",
           },
         },
       },

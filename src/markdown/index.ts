@@ -101,6 +101,8 @@ function convertDatabaseToMarkdown(database: DatabaseResponse): string {
           details = `Options: ${options.map((o: any) => o.name).join(", ")}`;
           break;
         case "relation":
+          // API responses may include database_id for backward compatibility,
+          // but requests must use data_source_id as of API version 2025-09-03
           details = `Related DB: ${prop.relation?.database_id || ""}`;
           break;
         case "formula":
