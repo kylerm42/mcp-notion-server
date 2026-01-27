@@ -13,6 +13,8 @@
  * - NOTION_MARKDOWN_CONVERSION: Optional. Set to "true" to enable
  *   experimental Markdown conversion. If not set or set to any other value,
  *   all responses will be in JSON format regardless of the "format" parameter.
+ * - NOTION_ENABLED_TOOLS: Optional. Comma-separated list of tools to enable.
+ *   If set, only these tools will be available. Takes precedence over --enabledTools flag.
  */
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
@@ -26,8 +28,10 @@ const argv = yargs(hideBin(process.argv))
   })
   .parseSync();
 
+// Environment variable takes precedence over command-line argument
+const enabledToolsString = process.env.NOTION_ENABLED_TOOLS || argv.enabledTools;
 const enabledToolsSet = new Set(
-  argv.enabledTools ? argv.enabledTools.split(",") : []
+  enabledToolsString ? enabledToolsString.split(",") : []
 );
 
 // if test environment, do not execute main()

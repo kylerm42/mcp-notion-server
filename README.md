@@ -63,12 +63,31 @@ or
 
 - `NOTION_API_TOKEN` (required): Your Notion API integration token.
 - `NOTION_MARKDOWN_CONVERSION`: Set to "true" to enable experimental Markdown conversion. This can significantly reduce token consumption when viewing content, but may cause issues when trying to edit page content.
+- `NOTION_ENABLED_TOOLS`: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_data_source"). When specified, only the listed tools will be available. If not specified, all tools are enabled. This takes precedence over the `--enabledTools` command-line argument.
 
 ## Command Line Arguments
 
-- `--enabledTools`: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_database"). When specified, only the listed tools will be available. If not specified, all tools are enabled.
+- `--enabledTools`: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_database"). When specified, only the listed tools will be available. If not specified, all tools are enabled. Note: The `NOTION_ENABLED_TOOLS` environment variable takes precedence over this flag.
 
-Read-only tools example (copy-paste friendly):
+Read-only tools example using environment variable (recommended for MCP configs):
+
+```json
+{
+  "mcpServers": {
+    "notion-ro": {
+      "command": "npx",
+      "args": ["-y", "@kylerm42/mcp-notion-server"],
+      "env": {
+        "NOTION_API_TOKEN": "your-integration-token",
+        "NOTION_MARKDOWN_CONVERSION": "true",
+        "NOTION_ENABLED_TOOLS": "notion_retrieve_block,notion_retrieve_block_children,notion_retrieve_page,notion_query_data_source,notion_retrieve_database,notion_retrieve_data_source,notion_search,notion_list_all_users,notion_retrieve_user,notion_retrieve_bot_user,notion_retrieve_comments"
+      }
+    }
+  }
+}
+```
+
+Read-only tools example using command-line argument (for direct execution):
 
 ```bash
 node build/index.js --enabledTools=notion_retrieve_block,notion_retrieve_block_children,notion_retrieve_page,notion_query_data_source,notion_retrieve_database,notion_retrieve_data_source,notion_search,notion_list_all_users,notion_retrieve_user,notion_retrieve_bot_user,notion_retrieve_comments
