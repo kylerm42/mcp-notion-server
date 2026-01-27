@@ -7,7 +7,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kylerm42/mcp-notion-server.git"
+    "url": "git+https://github.com/kylerm42/mcp-notion-server.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
