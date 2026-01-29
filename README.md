@@ -62,8 +62,10 @@ or
 ## Environment Variables
 
 - `NOTION_API_TOKEN` (required): Your Notion API integration token.
+- `NOTION_PRESET` (optional): Predefined configuration preset. Valid values: `read-only`, `write-only`, `write-markdown`, `read-write-markdown`, `full`. See "Configuration Presets" section for details.
+- `NOTION_ENABLED_TOOLS`: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_data_source"). When used with `NOTION_PRESET`, adds tools to the preset's base (union). When used without preset, only the listed tools will be available. If not specified, all tools are enabled. This takes precedence over the `--enabledTools` command-line argument.
+- `NOTION_ENABLED_BLOCKS`: Comma-separated list of block types to enable in raw JSON tools (e.g. "toggle,column,column_list,bookmark,embed"). When used with `NOTION_PRESET`, overrides the preset's block configuration. When specified, only the listed block types will be available in tools like `notion_append_block_children`. If not specified, all block types are enabled. Use this with Markdown tools for optimal token efficiency. See the "Token Efficiency with Block Filtering" section for detailed configuration examples.
 - `NOTION_MARKDOWN_CONVERSION`: Set to "true" to enable experimental Markdown conversion. This can significantly reduce token consumption when viewing content, but may cause issues when trying to edit page content.
-- `NOTION_ENABLED_TOOLS`: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_data_source"). When specified, only the listed tools will be available. If not specified, all tools are enabled. This takes precedence over the `--enabledTools` command-line argument.
 
 ## Command Line Arguments
 
@@ -92,6 +94,139 @@ Read-only tools example using command-line argument (for direct execution):
 ```bash
 node build/index.js --enabledTools=notion_retrieve_block,notion_retrieve_block_children,notion_retrieve_page,notion_query_data_source,notion_retrieve_database,notion_retrieve_data_source,notion_search,notion_list_all_users,notion_retrieve_user,notion_retrieve_bot_user,notion_retrieve_comments
 ```
+
+## Configuration Presets
+
+For common use cases, use predefined presets instead of manually specifying tools and blocks. Presets provide sensible defaults with the flexibility to customize.
+
+### Available Presets
+
+#### `read-only`
+All read/retrieve/query/search tools with no write operations.
+
+**Use case:** Read-only assistants, content indexing, data analysis
+
+**Configuration:**
+```json
+{
+  "mcpServers": {
+    "notion-readonly": {
+      "command": "npx",
+      "args": ["-y", "@kylerm42/mcp-notion-server"],
+      "env": {
+        "NOTION_API_TOKEN": "your-integration-token",
+        "NOTION_PRESET": "read-only"
+      }
+    }
+  }
+}
+```
+
+#### `write-only`
+All write tools (markdown + raw blocks) with no read operations.
+
+**Use case:** Content creation bots, import scripts, automated updates
+
+**Configuration:**
+```json
+{
+  "env": {
+    "NOTION_API_TOKEN": "your-integration-token",
+    "NOTION_PRESET": "write-only"
+  }
+}
+```
+
+#### `write-markdown`
+Markdown write tools only (no read, no raw blocks).
+
+**Use case:** Simple content writers, note-taking assistants
+
+**Configuration:**
+```json
+{
+  "env": {
+    "NOTION_API_TOKEN": "your-integration-token",
+    "NOTION_PRESET": "write-markdown"
+  }
+}
+```
+
+#### `read-write-markdown` (Recommended)
+All read tools + markdown write tools. Token-optimized configuration.
+
+**Use case:** General-purpose assistants with efficient context usage
+
+**Configuration:**
+```json
+{
+  "env": {
+    "NOTION_API_TOKEN": "your-integration-token",
+    "NOTION_PRESET": "read-write-markdown"
+  }
+}
+```
+
+#### `full`
+All tools with no filtering (default behavior).
+
+**Use case:** Development, testing, maximum flexibility
+
+**Configuration:**
+```json
+{
+  "env": {
+    "NOTION_API_TOKEN": "your-integration-token",
+    "NOTION_PRESET": "full"
+  }
+}
+```
+
+### Extending Presets
+
+Presets can be customized using environment variables:
+
+#### Add Tools to Preset (Union)
+
+Start with a preset and add specific tools:
+
+```json
+{
+  "env": {
+    "NOTION_API_TOKEN": "your-integration-token",
+    "NOTION_PRESET": "read-only",
+    "NOTION_ENABLED_TOOLS": "notion_update_page"
+  }
+}
+```
+
+This gives you all read tools plus the ability to update pages.
+
+#### Override Block Filter (Replacement)
+
+Start with a preset and customize block filtering:
+
+```json
+{
+  "env": {
+    "NOTION_API_TOKEN": "your-integration-token",
+    "NOTION_PRESET": "read-write-markdown",
+    "NOTION_ENABLED_BLOCKS": "toggle,column"
+  }
+}
+```
+
+This gives you read + markdown tools, plus raw block tools with filtered schemas (only toggle and column blocks).
+
+### Preset Comparison
+
+| Preset | Read Tools | Markdown Write | Raw Block Write | Token Efficiency |
+|--------|-----------|----------------|-----------------|------------------|
+| `read-only` | ✅ | ❌ | ❌ | High (no write schemas) |
+| `write-only` | ❌ | ✅ | ✅ | Medium (all write schemas) |
+| `write-markdown` | ❌ | ✅ | ❌ | High (markdown only) |
+| `read-write-markdown` | ✅ | ✅ | ❌ | Highest (optimized) |
+| `full` | ✅ | ✅ | ✅ | Standard (no filtering) |
 
 ## Advanced Configuration
 
@@ -137,6 +272,150 @@ You can control the format on a per-request basis by setting the `format` parame
 
 - Use `"markdown"` for better readability when only viewing content
 - Use `"json"` when you need to modify the returned content
+
+## Markdown Tools for Content Creation
+
+This server provides Markdown-based tools that dramatically simplify content creation by allowing you to use familiar Markdown syntax instead of complex JSON structures. These tools are ideal for approximately 95% of content creation use cases.
+
+### Benefits of Markdown Tools
+
+- **Simpler syntax**: Use standard Markdown instead of nested JSON block objects
+- **Reduced context consumption**: Markdown tools consume significantly fewer tokens than raw JSON schemas
+- **GitHub Flavored Markdown support**: Tables, task lists, code blocks with syntax highlighting, and more
+- **Faster content creation**: Write naturally without worrying about Notion's block structure
+
+### Available Markdown Tools
+
+#### `notion_append_markdown`
+
+Append Markdown content to an existing Notion block.
+
+**Example:**
+
+```json
+{
+  "name": "notion_append_markdown",
+  "arguments": {
+    "block_id": "abc123",
+    "markdown": "## New Section\n\nSome **bold** and *italic* text.\n\n- Item 1\n- Item 2"
+  }
+}
+```
+
+**Supported Markdown features:**
+- Headings (H1-H3)
+- Paragraphs with inline formatting (bold, italic, strikethrough, code)
+- Bulleted and numbered lists
+- Code blocks with language highlighting
+- Tables (GitHub Flavored Markdown)
+- Block quotes
+- Images (with valid URLs)
+- Math equations (KaTeX syntax)
+
+#### `notion_create_page_from_markdown`
+
+Create a new Notion page with Markdown content.
+
+**Example:**
+
+```json
+{
+  "name": "notion_create_page_from_markdown",
+  "arguments": {
+    "parent": { "page_id": "parent-page-id" },
+    "title": "Meeting Notes - Q1 Planning",
+    "markdown": "# Agenda\n\n1. Review Q1 goals\n2. Discuss roadmap\n3. Resource allocation\n\n## Action Items\n\n- [ ] Update project spec\n- [ ] Schedule follow-up meeting\n\n## Code Review\n\n```javascript\nfunction calculateMetrics() {\n  return data.reduce((sum, item) => sum + item.value, 0);\n}\n```"
+  }
+}
+```
+
+**For database items:**
+
+```json
+{
+  "name": "notion_create_page_from_markdown",
+  "arguments": {
+    "parent": { "database_id": "database-id" },
+    "markdown": "# Project Overview\n\nThis project focuses on...",
+    "properties": {
+      "Name": { "title": [{ "text": { "content": "Project Alpha" } }] },
+      "Status": { "select": { "name": "In Progress" } },
+      "Priority": { "number": 1 }
+    }
+  }
+}
+```
+
+### When to Use Markdown vs. Raw JSON Tools
+
+**Use Markdown tools (`notion_append_markdown`, `notion_create_page_from_markdown`) for:**
+- Paragraphs and headings
+- Lists (bulleted, numbered, task lists)
+- Tables
+- Code blocks
+- Simple formatted text (bold, italic, links)
+- Most content creation scenarios (95% of use cases)
+
+**Use raw JSON tools (`notion_append_block_children`, `notion_update_block`) for:**
+- Toggle blocks (collapsible sections)
+- Multi-column layouts
+- Embedded content (bookmarks, videos, files)
+- Synced blocks
+- Advanced block configurations not expressible in Markdown (5% of use cases)
+
+### Token Efficiency with Block Filtering
+
+To maximize token efficiency, you can combine Markdown tools with the `NOTION_ENABLED_BLOCKS` environment variable to minimize tool schema size.
+
+#### Optimized Configuration (Markdown-First)
+
+This configuration uses Markdown tools for standard content and enables only essential complex blocks:
+
+```json
+{
+  "mcpServers": {
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@kylerm42/mcp-notion-server"],
+      "env": {
+        "NOTION_API_TOKEN": "your-integration-token",
+        "NOTION_MARKDOWN_CONVERSION": "true",
+        "NOTION_ENABLED_BLOCKS": "toggle,column,column_list,bookmark,embed",
+        "NOTION_ENABLED_TOOLS": "notion_append_markdown,notion_create_page_from_markdown,notion_append_block_children,notion_retrieve_page,notion_retrieve_block_children,notion_query_data_source,notion_create_data_source_item,notion_search"
+      }
+    }
+  }
+}
+```
+
+**Token savings:** This configuration reduces tool schema context from approximately 22,000 tokens to 6,000 tokens (73% reduction) while maintaining full functionality through the hybrid approach.
+
+#### Hybrid Configuration (Balanced)
+
+Enable more block types while still using Markdown for most content:
+
+```json
+{
+  "env": {
+    "NOTION_API_TOKEN": "your-integration-token",
+    "NOTION_ENABLED_BLOCKS": "toggle,column,column_list,bookmark,embed,divider,table_of_contents,synced_block"
+  }
+}
+```
+
+#### Full Configuration (No Filtering)
+
+Omit `NOTION_ENABLED_BLOCKS` entirely to enable all block types in raw JSON tools:
+
+```json
+{
+  "env": {
+    "NOTION_API_TOKEN": "your-integration-token"
+  }
+}
+```
+
+This is the default behavior and maintains backward compatibility with existing configurations.
 
 ## Understanding Data Sources (API Version 2025-09-03)
 
@@ -275,22 +554,52 @@ All tools support the following optional parameter:
 
 - `format` (string, "json" or "markdown", default: "markdown"): Controls the response format. Use "markdown" for human-readable output, "json" for programmatic access to the original data structure. Note: Markdown conversion only works when the `NOTION_MARKDOWN_CONVERSION` environment variable is set to "true".
 
-1. `notion_append_block_children`
+### Markdown Content Tools
 
-   - Append child blocks to a parent block.
+1. `notion_append_markdown`
+
+   - Append Markdown content to a Notion block. Ideal for adding formatted text, lists, tables, and code blocks without complex JSON syntax.
+   - Required inputs:
+     - `block_id` (string): The ID of the parent block to append content to.
+     - `markdown` (string): Markdown content to append. Supports GitHub Flavored Markdown including headings, lists, tables, code blocks, equations, and inline formatting.
+   - Optional inputs:
+     - `format` (string): Response format ("json" or "markdown").
+   - Returns: Information about the appended blocks.
+   - Supported Markdown features: Headings (H1-H3), paragraphs, bold/italic/strikethrough, bulleted/numbered lists, code blocks with syntax highlighting, tables, block quotes, images, math equations (KaTeX).
+
+2. `notion_create_page_from_markdown`
+
+   - Create a new Notion page with Markdown content. Simplifies page creation by using familiar Markdown syntax.
+   - Required inputs:
+     - `parent` (object): Parent object (page_id, database_id, or workspace). Use page_id for sub-pages, database_id for database items.
+     - `markdown` (string): Page content in Markdown format. Supports all GitHub Flavored Markdown features.
+   - Optional inputs:
+     - `title` (string): The page title (plain text).
+     - `properties` (object): Database properties if parent is a database. For relation properties, provide an array of page IDs: `{"relation": [{"id": "page-id"}]}`.
+     - `icon` (object): Page icon (emoji or external URL).
+     - `format` (string): Response format ("json" or "markdown").
+   - Returns: Information about the newly created page.
+   - Note: For database items, use the `properties` parameter to set property values according to the database schema.
+
+### Raw Block Tools
+
+3. `notion_append_block_children`
+
+   - Append child blocks to a parent block using raw JSON block objects. Use this for complex block types not supported by Markdown (toggles, columns, embeds).
    - Required inputs:
      - `block_id` (string): The ID of the parent block.
-     - `children` (array): Array of block objects to append.
+     - `children` (array): Array of block objects to append. Each block must follow the Notion block schema.
    - Returns: Information about the appended blocks.
+   - Note: When `NOTION_ENABLED_BLOCKS` is set, only the specified block types will be available in the schema. For standard content (paragraphs, headings, lists), use `notion_append_markdown` instead.
 
-2. `notion_retrieve_block`
+4. `notion_retrieve_block`
 
    - Retrieve information about a specific block.
    - Required inputs:
      - `block_id` (string): The ID of the block to retrieve.
    - Returns: Detailed information about the block.
 
-3. `notion_retrieve_block_children`
+5. `notion_retrieve_block_children`
 
    - Retrieve the children of a specific block.
    - Required inputs:
@@ -300,21 +609,21 @@ All tools support the following optional parameter:
      - `page_size` (number, default: 100, max: 100): Number of blocks to retrieve.
    - Returns: List of child blocks.
 
-4. `notion_delete_block`
+6. `notion_delete_block`
 
    - Delete a specific block.
    - Required inputs:
      - `block_id` (string): The ID of the block to delete.
    - Returns: Confirmation of the deletion.
 
-5. `notion_retrieve_page`
+7. `notion_retrieve_page`
 
    - Retrieve information about a specific page.
    - Required inputs:
      - `page_id` (string): The ID of the page to retrieve.
    - Returns: Detailed information about the page.
 
-6. `notion_update_page_properties`
+8. `notion_update_page_properties`
 
    - Update properties of a page.
    - Required inputs:
@@ -322,7 +631,9 @@ All tools support the following optional parameter:
      - `properties` (object): Properties to update.
    - Returns: Information about the updated page.
 
-7. `notion_create_database`
+### Database and Data Source Tools
+
+9. `notion_create_database`
 
    - Create a new database with an initial data source for storing pages.
    - Required inputs:

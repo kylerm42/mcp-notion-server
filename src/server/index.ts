@@ -9,9 +9,11 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { markdownToBlocks, markdownToRichText } from "@tryfabric/martian";
 import { NotionClientWrapper } from "../client/index.js";
 import { filterTools } from "../utils/index.js";
 import * as schemas from "../types/schemas.js";
+import * as markdownSchemas from "../types/markdown-schemas.js";
 import * as args from "../types/args.js";
 
 /**
@@ -20,7 +22,8 @@ import * as args from "../types/args.js";
 export async function startServer(
   notionToken: string,
   enabledToolsSet: Set<string>,
-  enableMarkdownConversion: boolean
+  enableMarkdownConversion: boolean,
+  enabledBlocksSet: Set<string> = new Set()
 ) {
   const server = new Server(
     {
@@ -286,6 +289,102 @@ export async function startServer(
             break;
           }
 
+          case "notion_append_markdown": {
+            const args = request.params.arguments as {
+              block_id: string;
+              markdown: string;
+              format?: string;
+            };
+
+            if (!args.block_id || !args.markdown) {
+              throw new Error(
+                "Missing required arguments: block_id and markdown"
+              );
+            }
+
+            // Convert Markdown to Notion blocks with error handling
+            try {
+              const blocks = markdownToBlocks(args.markdown, {
+                strictImageUrls: true,
+                notionLimits: { truncate: true },
+              });
+
+              response = await notionClient.appendBlockChildren(
+                args.block_id,
+                blocks
+              );
+            } catch (error) {
+              return {
+                content: [
+                  {
+                    type: "text",
+                    text: JSON.stringify({
+                      error: `Failed to convert Markdown: ${error instanceof Error ? error.message : String(error)}`,
+                    }),
+                  },
+                ],
+                isError: true,
+              };
+            }
+            break;
+          }
+
+          case "notion_create_page_from_markdown": {
+            const args = request.params.arguments as {
+              parent: {
+                page_id?: string;
+                database_id?: string;
+                workspace?: boolean;
+              };
+              title?: string;
+              markdown: string;
+              properties?: Record<string, any>;
+              icon?: { emoji?: string; external?: { url: string } };
+              format?: string;
+            };
+
+            if (!args.parent || !args.markdown) {
+              throw new Error("Missing required arguments: parent and markdown");
+            }
+
+            // Convert Markdown to blocks with error handling
+            try {
+              const children = markdownToBlocks(args.markdown, {
+                strictImageUrls: true,
+                notionLimits: { truncate: true },
+              });
+
+              // Build page properties
+              const pageProperties = args.properties || {};
+              if (args.title && !pageProperties.title) {
+                // Convert plain text title to rich text format for Notion API
+                pageProperties.title = [
+                  { type: "text", text: { content: args.title } },
+                ];
+              }
+
+              response = await notionClient.createPage({
+                parent: args.parent,
+                properties: pageProperties,
+                children,
+                icon: args.icon,
+              });
+            } catch (error) {
+              return {
+                content: [
+                  {
+                    type: "text",
+                    text: JSON.stringify({
+                      error: `Failed to convert Markdown: ${error instanceof Error ? error.message : String(error)}`,
+                    }),
+                  },
+                ],
+                isError: true,
+              };
+            }
+            break;
+          }
+
           default:
             throw new Error(`Unknown tool: ${request.params.name}`);
         }
@@ -326,12 +425,15 @@ export async function startServer(
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
+    // Create tools with filtered block schemas
+    const blockTools = schemas.createBlockBasedTools(enabledBlocksSet);
+
     const allTools = [
-      schemas.appendBlockChildrenTool,
+      blockTools.appendBlockChildrenTool,
       schemas.retrieveBlockTool,
       schemas.retrieveBlockChildrenTool,
       schemas.deleteBlockTool,
-      schemas.updateBlockTool,
+      blockTools.updateBlockTool,
       schemas.retrievePageTool,
       schemas.updatePagePropertiesTool,
       schemas.listAllUsersTool,
@@ -347,6 +449,8 @@ export async function startServer(
       schemas.createCommentTool,
       schemas.retrieveCommentsTool,
       schemas.searchTool,
+      markdownSchemas.appendMarkdownTool,
+      markdownSchemas.createPageFromMarkdownTool,
     ];
     return {
       tools: filterTools(allTools, enabledToolsSet),

@@ -1,6 +1,6 @@
 {
   "name": "@kylerm42/mcp-notion-server",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "MCP server for interacting with Notion API based on Node",
   "license": "MIT",
   "author": "Kosuke Suenaga (https://github.com/suekou/mcp-notion-server)",
@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.11.2",
+    "@tryfabric/martian": "^1.2.4",
     "node-fetch": "^2.7.0",
     "vitest": "3.0.9",
     "yargs": "^17.7.2"

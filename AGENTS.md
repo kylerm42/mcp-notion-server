@@ -44,6 +44,9 @@ node build/index.js    # Run the compiled server directly
 
 ### Environment Variables
 - `NOTION_API_TOKEN` (required): Notion API integration token
+- `NOTION_PRESET` (optional): Predefined configuration preset. Valid values: `read-only`, `write-only`, `write-markdown`, `read-write-markdown`, `full`. If set, provides base tool and block configuration. Can be extended with `NOTION_ENABLED_TOOLS` (additive) and `NOTION_ENABLED_BLOCKS` (override). If not set, existing behavior is preserved (backward compatible).
+- `NOTION_ENABLED_TOOLS`: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_data_source"). When used with `NOTION_PRESET`, adds tools to preset's base (union). When used without preset, only these tools will be enabled.
+- `NOTION_ENABLED_BLOCKS`: Comma-separated list of block types to enable in raw JSON tools (e.g. "toggle,column,column_list"). When used with `NOTION_PRESET`, overrides preset's block configuration. Used for schema filtering to reduce token consumption. See "Block Schema Filtering Configuration" section below.
 - `NOTION_MARKDOWN_CONVERSION`: Set to "true" to enable Markdown conversion
 - `NODE_ENV`: Set to "test" to prevent server startup during testing
 - `VITEST`: Set to "true" by Vitest during test runs
@@ -349,6 +352,231 @@ const dataSourceId = dataSource.id;
 11. Create or update MIGRATION.md if breaking changes introduced
 12. Update this file (AGENTS.md) with new patterns and breaking changes
 
+## Configuration Presets
+
+The preset system provides predefined configurations for common use cases. This section documents preset behavior and composition rules.
+
+### Preset Definitions
+
+Five standard presets are available in `src/presets.ts`:
+
+```typescript
+{
+  "read-only": {
+    tools: [retrieve_page, retrieve_block, query_data_source, search, ...],
+    blocks: [] // No filtering
+  },
+  "write-only": {
+    tools: [append_markdown, append_block_children, update_page, ...],
+    blocks: [] // No filtering
+  },
+  "write-markdown": {
+    tools: [append_markdown, create_page_from_markdown],
+    blocks: [] // No raw block tools enabled
+  },
+  "read-write-markdown": {
+    tools: [...read tools, append_markdown, create_page_from_markdown],
+    blocks: [] // Token-optimized
+  },
+  "full": {
+    tools: [], // Empty = all tools
+    blocks: [] // Empty = no filtering
+  }
+}
+```
+
+### Composition Rules
+
+**Rule 1: Tools are additive (union)**
+
+When both `NOTION_PRESET` and `NOTION_ENABLED_TOOLS` are set, tools are combined:
+
+```bash
+export NOTION_PRESET=read-only
+export NOTION_ENABLED_TOOLS=notion_update_page
+# Result: All read tools + notion_update_page
+```
+
+This allows "read-only + one write tool" configurations without creating new presets.
+
+**Rule 2: Blocks are override (replacement)**
+
+When both `NOTION_PRESET` and `NOTION_ENABLED_BLOCKS` are set, blocks setting completely replaces preset's blocks:
+
+```bash
+export NOTION_PRESET=read-write-markdown  # blocks=[]
+export NOTION_ENABLED_BLOCKS=toggle
+# Result: Override empty blocks with [toggle]
+```
+
+This preserves token optimization intent. If blocks were additive, adding to an empty set would be confusing.
+
+### Testing Presets
+
+When testing preset functionality:
+
+1. **Test pure presets** - Each preset in isolation
+   ```typescript
+   test("should resolve read-only preset", () => {
+     const config = resolvePreset("read-only", undefined, undefined);
+     expect(config.enabledTools).toContain("notion_retrieve_page");
+   });
+   ```
+
+2. **Test tool composition** - Preset + ENABLED_TOOLS
+   ```typescript
+   test("should add tools to preset", () => {
+     const config = resolvePreset("read-only", "notion_update_page", undefined);
+     expect(config.enabledTools).toContain("notion_update_page");
+   });
+   ```
+
+3. **Test block override** - Preset + ENABLED_BLOCKS
+   ```typescript
+   test("should override blocks", () => {
+     const config = resolvePreset("read-write-markdown", undefined, "toggle");
+     expect(config.enabledBlocks).toContain("toggle");
+   });
+   ```
+
+4. **Test invalid presets** - Error handling
+   ```typescript
+   test("should throw on invalid preset", () => {
+     expect(() => resolvePreset("invalid", undefined, undefined)).toThrow();
+   });
+   ```
+
+5. **Test backward compatibility** - No preset set
+   ```typescript
+   test("should handle no preset", () => {
+     const config = resolvePreset(undefined, "notion_retrieve_page", undefined);
+     // Should behave like existing implementation
+   });
+   ```
+
+### Common Preset Use Cases
+
+**Read-only assistant:**
+```bash
+export NOTION_PRESET=read-only
+```
+
+**Content writer with toggle support:**
+```bash
+export NOTION_PRESET=read-write-markdown
+export NOTION_ENABLED_TOOLS=notion_append_block_children  # Add raw block tool
+export NOTION_ENABLED_BLOCKS=toggle  # Filter to only toggle
+```
+
+**Development/testing:**
+```bash
+export NOTION_PRESET=full
+```
+
+**Custom read-write with specific tools:**
+```bash
+export NOTION_PRESET=read-only
+export NOTION_ENABLED_TOOLS=notion_update_page,notion_append_markdown
+```
+
+## Block Schema Filtering Configuration
+
+### Overview
+
+The `NOTION_ENABLED_BLOCKS` environment variable allows filtering of block types in raw JSON tools to reduce tool schema token consumption. This is designed to work in conjunction with Markdown tools for optimal efficiency.
+
+### Configuration Strategy
+
+**Markdown-First Approach (Recommended)**
+
+Enable only complex block types that cannot be expressed in Markdown:
+
+```bash
+export NOTION_ENABLED_BLOCKS="toggle,column,column_list,bookmark,embed"
+```
+
+This configuration:
+- Reduces tool schema context from ~22,000 tokens to ~6,000 tokens (73% reduction)
+- Uses Markdown tools (`notion_append_markdown`, `notion_create_page_from_markdown`) for standard content
+- Uses raw JSON tools (`notion_append_block_children`) only for complex layouts
+
+**Balanced Approach**
+
+Enable additional block types for more flexibility:
+
+```bash
+export NOTION_ENABLED_BLOCKS="toggle,column,column_list,bookmark,embed,divider,table_of_contents,synced_block"
+```
+
+**No Filtering (Default)**
+
+Omit the variable entirely or set to empty string:
+
+```bash
+# NOTION_ENABLED_BLOCKS not set
+```
+
+This maintains backward compatibility and enables all block types in raw JSON tools.
+
+### Block Type Categories
+
+**Markdown-Supported Blocks (exclude from NOTION_ENABLED_BLOCKS):**
+- `paragraph`, `heading_1`, `heading_2`, `heading_3`
+- `bulleted_list_item`, `numbered_list_item`
+- `code`, `quote`, `table`
+- These are handled efficiently by `notion_append_markdown`
+
+**Complex Blocks (include in NOTION_ENABLED_BLOCKS when needed):**
+- `toggle` - Collapsible sections
+- `column`, `column_list` - Multi-column layouts
+- `bookmark`, `embed` - External content
+- `synced_block` - Synced content blocks
+- `divider`, `table_of_contents` - Special elements
+
+### Testing Markdown Features
+
+When testing Markdown conversion tools:
+
+1. **Test Markdown-to-Block Conversion**
+   ```typescript
+   import { markdownToBlocks } from "@tryfabric/martian";
+   
+   test("should convert heading to heading_1 block", () => {
+     const blocks = markdownToBlocks("# Title");
+     expect(blocks[0].type).toBe("heading_1");
+   });
+   ```
+
+2. **Test Tool Handlers**
+   - Mock the `markdownToBlocks()` function to avoid external dependencies
+   - Verify that handlers pass correct parameters to client methods
+   - Test error handling for invalid Markdown
+
+3. **Test Block Filtering**
+   ```typescript
+   import { getFilteredBlockSchema } from "./types/common.js";
+   
+   test("should filter to only specified blocks", () => {
+     const filtered = getFilteredBlockSchema(new Set(["toggle"]));
+     expect(filtered.properties).toHaveProperty("toggle");
+     expect(filtered.properties).not.toHaveProperty("paragraph");
+   });
+   ```
+
+4. **Test Edge Cases**
+   - Empty Markdown strings
+   - Malformed Markdown (invalid tables, etc.)
+   - Very long content (test truncation behavior)
+   - Invalid image URLs (verify fallback to text)
+
+### Implementation Notes
+
+- The `getFilteredBlockSchema()` function in `src/types/common.ts` handles dynamic schema filtering
+- Empty `enabledBlocks` set returns full schema (no filtering)
+- Tool descriptions dynamically update to reflect enabled block types
+- Martian library (`@tryfabric/martian`) handles Markdown-to-Notion conversion
+- Error handling in tool handlers wraps `markdownToBlocks()` calls
+
 ## Common Pitfalls to Avoid
 
 - ❌ Forgetting `.js` extensions in imports
@@ -357,3 +585,4 @@ const dataSourceId = dataSource.id;
 - ❌ Not mocking fetch in tests (causes real API calls)
 - ❌ Using inconsistent parameter naming (snake_case for API params)
 - ❌ Forgetting to check `NODE_ENV` before starting server in tests
+- ❌ Including Markdown-supported blocks in `NOTION_ENABLED_BLOCKS` (defeats the purpose of token optimization)

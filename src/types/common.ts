@@ -553,3 +553,48 @@ export const blockObjectSchema = {
   },
   required: ["object", "type"],
 };
+
+/**
+ * Get a filtered blockObjectSchema based on enabled blocks.
+ * If enabledBlocks is empty, returns full schema (no filtering).
+ *
+ * @param enabledBlocks Set of block type names to include in schema
+ * @returns Filtered block object schema
+ */
+export function getFilteredBlockSchema(
+  enabledBlocks: Set<string>
+): {
+  type: string;
+  description: string;
+  properties: Record<string, any>;
+  required: string[];
+} {
+  // No filtering if set is empty (backward compatible)
+  if (enabledBlocks.size === 0) {
+    return blockObjectSchema;
+  }
+
+  // Build filtered properties object with only enabled block types
+  const filteredProperties: Record<string, any> = {
+    object: blockObjectSchema.properties.object,
+    type: {
+      ...blockObjectSchema.properties.type,
+      description: `Type of the block. Enabled types: ${Array.from(enabledBlocks).join(", ")}. For standard content blocks (paragraphs, headings, lists), use notion_append_markdown instead.`,
+    },
+  };
+
+  // Add only enabled block type definitions
+  const props = blockObjectSchema.properties as Record<string, any>;
+  for (const blockType of enabledBlocks) {
+    if (props[blockType]) {
+      filteredProperties[blockType] = props[blockType];
+    }
+  }
+
+  return {
+    type: blockObjectSchema.type,
+    description: `A Notion block object. Only these block types are enabled: ${Array.from(enabledBlocks).join(", ")}. Use notion_append_markdown for standard content.`,
+    properties: filteredProperties,
+    required: blockObjectSchema.required,
+  };
+}

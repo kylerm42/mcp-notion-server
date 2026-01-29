@@ -425,6 +425,25 @@ export class NotionClientWrapper {
     return response.json();
   }
 
+  /**
+   * Create a new page in Notion
+   * @see https://developers.notion.com/reference/post-page
+   */
+  async createPage(params: {
+    parent: { page_id?: string; database_id?: string; workspace?: boolean };
+    properties: Record<string, any>;
+    children?: any[];
+    icon?: { emoji?: string; external?: { url: string } };
+    cover?: { external: { url: string } };
+  }): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/pages`, {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify(params),
+    });
+    return response.json();
+  }
+
   async toMarkdown(response: NotionResponse): Promise<string> {
     return convertToMarkdown(response);
   }

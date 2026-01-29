@@ -10,15 +10,23 @@
  *
  * Environment Variables:
  * - NOTION_API_TOKEN: Required. Your Notion API integration token.
+ * - NOTION_PRESET: Optional. Predefined configuration preset.
+ *   Valid values: read-only, write-only, write-markdown, read-write-markdown, full
+ * - NOTION_ENABLED_TOOLS: Optional. Comma-separated list of tools to enable.
+ *   When used with NOTION_PRESET, adds tools to preset's base (union).
+ *   If set without preset, only these tools will be available. Takes precedence over --enabledTools flag.
+ * - NOTION_ENABLED_BLOCKS: Optional. Comma-separated list of block types to enable in raw JSON tools.
+ *   When used with NOTION_PRESET, overrides preset's block configuration.
+ *   Example: "toggle,column,column_list,bookmark,embed"
+ *   If empty, all block types are available. Use with Markdown tools for optimal token efficiency.
  * - NOTION_MARKDOWN_CONVERSION: Optional. Set to "true" to enable
  *   experimental Markdown conversion. If not set or set to any other value,
  *   all responses will be in JSON format regardless of the "format" parameter.
- * - NOTION_ENABLED_TOOLS: Optional. Comma-separated list of tools to enable.
- *   If set, only these tools will be available. Takes precedence over --enabledTools flag.
  */
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { startServer } from "./server/index.js";
+import { resolvePreset } from "./presets.js";
 
 // Parse command line arguments
 const argv = yargs(hideBin(process.argv))
@@ -28,11 +36,25 @@ const argv = yargs(hideBin(process.argv))
   })
   .parseSync();
 
-// Environment variable takes precedence over command-line argument
-const enabledToolsString = process.env.NOTION_ENABLED_TOOLS || argv.enabledTools;
-const enabledToolsSet = new Set(
-  enabledToolsString ? enabledToolsString.split(",") : []
-);
+// Resolve configuration from preset + overrides
+const presetName = process.env.NOTION_PRESET;
+const additionalTools = process.env.NOTION_ENABLED_TOOLS || argv.enabledTools;
+const blockOverride = process.env.NOTION_ENABLED_BLOCKS;
+
+let enabledToolsSet: Set<string>;
+let enabledBlocksSet: Set<string>;
+
+try {
+  const config = resolvePreset(presetName, additionalTools, blockOverride);
+  enabledToolsSet = config.enabledTools;
+  enabledBlocksSet = config.enabledBlocks;
+} catch (error) {
+  if (error instanceof Error) {
+    console.error(`Configuration error: ${error.message}`);
+    process.exit(1);
+  }
+  throw error;
+}
 
 // if test environment, do not execute main()
 if (process.env.NODE_ENV !== "test" && process.env.VITEST !== "true") {
@@ -52,5 +74,10 @@ async function main() {
     process.exit(1);
   }
 
-  await startServer(notionToken, enabledToolsSet, enableMarkdownConversion);
+  await startServer(
+    notionToken,
+    enabledToolsSet,
+    enableMarkdownConversion,
+    enabledBlocksSet
+  );
 }

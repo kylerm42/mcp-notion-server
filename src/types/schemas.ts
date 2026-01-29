@@ -8,6 +8,7 @@ import {
   formatParameter,
   richTextObjectSchema,
   blockObjectSchema,
+  getFilteredBlockSchema,
 } from "./common.js";
 
 // Blocks tools
@@ -542,3 +543,54 @@ export const searchTool: Tool = {
     },
   },
 };
+
+/**
+ * Create block-based tools with optionally filtered schemas
+ */
+export function createBlockBasedTools(enabledBlocks: Set<string>) {
+  const filteredBlockSchema = getFilteredBlockSchema(enabledBlocks);
+
+  const descriptionSuffix =
+    enabledBlocks.size > 0
+      ? ` Enabled block types: ${Array.from(enabledBlocks).join(", ")}. For standard content, use notion_append_markdown.`
+      : "";
+
+  return {
+    appendBlockChildrenTool: {
+      ...appendBlockChildrenTool,
+      description: appendBlockChildrenTool.description + descriptionSuffix,
+      inputSchema: {
+        ...appendBlockChildrenTool.inputSchema,
+        properties: {
+          ...appendBlockChildrenTool.inputSchema.properties,
+          children: {
+            type: "array",
+            description:
+              enabledBlocks.size > 0
+                ? `Array of block objects. Supported types: ${Array.from(enabledBlocks).join(", ")}`
+                : "Array of block objects to append. Each block must follow the Notion block schema.",
+            items: filteredBlockSchema,
+          },
+        },
+      },
+    },
+
+    updateBlockTool: {
+      ...updateBlockTool,
+      description: updateBlockTool.description + descriptionSuffix,
+      inputSchema: {
+        ...updateBlockTool.inputSchema,
+        properties: {
+          ...updateBlockTool.inputSchema.properties,
+          block: {
+            type: "object",
+            description:
+              enabledBlocks.size > 0
+                ? `Updated block content. Supported types: ${Array.from(enabledBlocks).join(", ")}`
+                : "The updated content for the block. Must match the block's type schema.",
+          },
+        },
+      },
+    },
+  };
+}
