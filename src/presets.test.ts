@@ -162,13 +162,15 @@ describe("Preset Definitions", () => {
     expect(preset.tools.some((t) => t.includes("search"))).toBe(false);
   });
 
-  test("write-markdown preset has only markdown tools", () => {
+  test("write-markdown preset has markdown and data source creation tools", () => {
     const preset = PRESETS["write-markdown"];
-    expect(preset.tools).toEqual([
-      "notion_append_markdown",
-      "notion_create_page_from_markdown",
-      "notion_retrieve_bot_user",
-    ]);
+    expect(preset.tools).toContain("notion_append_markdown");
+    expect(preset.tools).toContain("notion_create_page_from_markdown");
+    expect(preset.tools).toContain("notion_create_data_source_item");
+    expect(preset.tools).toContain("notion_retrieve_bot_user");
+    // Should not have raw block tools
+    expect(preset.tools).not.toContain("notion_append_block_children");
+    expect(preset.tools).not.toContain("notion_update_block");
   });
 
   test("read-write-markdown preset has read and markdown tools", () => {

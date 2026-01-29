@@ -46,6 +46,7 @@ export const PRESETS: Record<string, PresetConfig> = {
     tools: [
       "notion_append_markdown",
       "notion_create_page_from_markdown",
+      "notion_create_data_source_item",
       "notion_retrieve_bot_user",
     ],
     blocks: [],
@@ -63,6 +64,7 @@ export const PRESETS: Record<string, PresetConfig> = {
       "notion_retrieve_bot_user",
       "notion_append_markdown",
       "notion_create_page_from_markdown",
+      "notion_create_data_source_item",
     ],
     blocks: [],
   },
