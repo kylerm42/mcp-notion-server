@@ -48,6 +48,7 @@ node build/index.js    # Run the compiled server directly
 - `NOTION_ENABLED_TOOLS`: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_data_source"). When used with `NOTION_PRESET`, adds tools to preset's base (union). When used without preset, only these tools will be enabled.
 - `NOTION_ENABLED_BLOCKS`: Comma-separated list of block types to enable in raw JSON tools (e.g. "toggle,column,column_list"). When used with `NOTION_PRESET`, overrides preset's block configuration. Used for schema filtering to reduce token consumption. See "Block Schema Filtering Configuration" section below.
 - `NOTION_MARKDOWN_CONVERSION`: Set to "true" to enable Markdown conversion
+- `LOG_LEVEL` (optional): Controls logging verbosity. Valid values: `debug`, `info`, `warn`, `error`, `silent`. Default: `info`. All logs go to stderr to avoid interfering with MCP protocol on stdout.
 - `NODE_ENV`: Set to "test" to prevent server startup during testing
 - `VITEST`: Set to "true" by Vitest during test runs
 
@@ -163,6 +164,7 @@ node build/index.js    # Run the compiled server directly
    ```
    src/
    ├── index.ts              # Entry point
+   ├── logger.ts             # Logging utility
    ├── client/
    │   └── index.ts          # API client wrapper
    ├── server/
@@ -208,6 +210,45 @@ node build/index.js    # Run the compiled server directly
      // Return error in response
    }
    ```
+
+### Logging Conventions
+
+**Always use the logger module instead of console.error/log for application logging.**
+
+1. **Import the logger**:
+   ```typescript
+   import { logger } from "./logger.js";
+   ```
+
+2. **Use appropriate log levels**:
+   ```typescript
+   logger.debug("Detailed debug information");  // Verbose info for debugging
+   logger.info("Server starting...");           // General informational messages
+   logger.warn("Falling back to default");      // Warning conditions
+   logger.error("Failed to connect");           // Error conditions
+   ```
+
+3. **Log level hierarchy**: `debug < info < warn < error < silent`
+   - Each level includes all higher severity levels
+   - Default level is `info` (shows info, warn, error)
+   - Configure via `LOG_LEVEL` environment variable
+
+4. **Why use the logger**:
+   - All logs go to stderr (stdout reserved for MCP protocol)
+   - Consistent formatting: `[LEVEL] message`
+   - Environment-based verbosity control
+   - No timestamps (allows proxy/supervisor to add their own)
+
+5. **When to log**:
+   - `debug`: Detailed flow information, tool calls, configuration details
+   - `info`: Server lifecycle events, successful operations
+   - `warn`: Recoverable errors, fallback behavior, deprecation notices
+   - `error`: Failures, exceptions, unrecoverable conditions
+
+6. **Existing console.error usage**:
+   - The logger is gradually replacing direct console.error calls
+   - New code should use the logger module
+   - Keep console.error for test mock verification only
 
 ### API Client Patterns
 
@@ -586,3 +627,4 @@ When testing Markdown conversion tools:
 - ❌ Using inconsistent parameter naming (snake_case for API params)
 - ❌ Forgetting to check `NODE_ENV` before starting server in tests
 - ❌ Including Markdown-supported blocks in `NOTION_ENABLED_BLOCKS` (defeats the purpose of token optimization)
+- ❌ Using `console.error` instead of `logger` for application logging

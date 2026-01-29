@@ -66,6 +66,7 @@ or
 - `NOTION_ENABLED_TOOLS`: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_data_source"). When used with `NOTION_PRESET`, adds tools to the preset's base (union). When used without preset, only the listed tools will be available. If not specified, all tools are enabled. This takes precedence over the `--enabledTools` command-line argument.
 - `NOTION_ENABLED_BLOCKS`: Comma-separated list of block types to enable in raw JSON tools (e.g. "toggle,column,column_list,bookmark,embed"). When used with `NOTION_PRESET`, overrides the preset's block configuration. When specified, only the listed block types will be available in tools like `notion_append_block_children`. If not specified, all block types are enabled. Use this with Markdown tools for optimal token efficiency. See the "Token Efficiency with Block Filtering" section for detailed configuration examples.
 - `NOTION_MARKDOWN_CONVERSION`: Set to "true" to enable experimental Markdown conversion. This can significantly reduce token consumption when viewing content, but may cause issues when trying to edit page content.
+- `LOG_LEVEL` (optional): Controls logging verbosity. Valid values: `debug`, `info`, `warn`, `error`, `silent`. Default is `info`. All logs are written to stderr to avoid interfering with the MCP protocol on stdout.
 
 ## Command Line Arguments
 

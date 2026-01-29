@@ -15,6 +15,7 @@ import { filterTools } from "../utils/index.js";
 import * as schemas from "../types/schemas.js";
 import * as markdownSchemas from "../types/markdown-schemas.js";
 import * as args from "../types/args.js";
+import { logger } from "../logger.js";
 
 /**
  * Start the MCP server
@@ -25,6 +26,9 @@ export async function startServer(
   enableMarkdownConversion: boolean,
   enabledBlocksSet: Set<string> = new Set()
 ) {
+  logger.debug("Creating MCP Server instance");
+  const serverStartTime = Date.now();
+  
   const server = new Server(
     {
       name: "Notion MCP Server",
@@ -36,13 +40,18 @@ export async function startServer(
       },
     }
   );
+  logger.debug(`MCP Server instance created (${Date.now() - serverStartTime}ms)`);
 
+  logger.debug("Initializing Notion API client");
+  const clientStartTime = Date.now();
   const notionClient = new NotionClientWrapper(notionToken);
+  logger.debug(`Notion API client initialized (${Date.now() - clientStartTime}ms)`);
 
+  logger.debug("Registering CallTool handler");
   server.setRequestHandler(
     CallToolRequestSchema,
     async (request: CallToolRequest) => {
-      console.error("Received CallToolRequest:", request);
+      logger.debug(`Received CallToolRequest: ${request.params.name}`);
       try {
         if (!request.params.arguments) {
           throw new Error("No arguments provided");
@@ -409,7 +418,7 @@ export async function startServer(
           };
         }
       } catch (error) {
-        console.error("Error executing tool:", error);
+        logger.error(`Error executing tool ${request.params.name}: ${error instanceof Error ? error.message : String(error)}`);
         return {
           content: [
             {
@@ -423,10 +432,17 @@ export async function startServer(
       }
     }
   );
+  logger.debug("CallToolRequest handler registered");
 
+  logger.debug("Registering ListTools handler");
+  const listToolsStartTime = Date.now();
   server.setRequestHandler(ListToolsRequestSchema, async () => {
+    logger.debug("ListTools request received, building tool schemas");
+    const schemaStartTime = Date.now();
+    
     // Create tools with filtered block schemas
     const blockTools = schemas.createBlockBasedTools(enabledBlocksSet);
+    logger.debug(`Block-based tools created (${Date.now() - schemaStartTime}ms)`);
 
     const allTools = [
       blockTools.appendBlockChildrenTool,
@@ -452,11 +468,23 @@ export async function startServer(
       markdownSchemas.appendMarkdownTool,
       markdownSchemas.createPageFromMarkdownTool,
     ];
+    
+    const filteredTools = filterTools(allTools, enabledToolsSet);
+    logger.debug(`Tools filtered: ${filteredTools.length}/${allTools.length} tools enabled (${Date.now() - schemaStartTime}ms total)`);
+    
     return {
-      tools: filterTools(allTools, enabledToolsSet),
+      tools: filteredTools,
     };
   });
+  logger.debug(`ListTools handler registered (${Date.now() - listToolsStartTime}ms)`);
 
+  logger.debug("Creating stdio transport");
+  const transportStartTime = Date.now();
   const transport = new StdioServerTransport();
+  logger.debug(`Stdio transport created (${Date.now() - transportStartTime}ms)`);
+  
+  logger.debug("Connecting server to transport");
+  const connectStartTime = Date.now();
   await server.connect(transport);
+  logger.debug(`Server connected to transport (${Date.now() - connectStartTime}ms)`);
 }
