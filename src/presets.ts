@@ -37,12 +37,17 @@ export const PRESETS: Record<string, PresetConfig> = {
       "notion_update_database",
       "notion_update_data_source",
       "notion_create_data_source_item",
+      "notion_retrieve_bot_user",
     ],
     blocks: [],
   },
 
   "write-markdown": {
-    tools: ["notion_append_markdown", "notion_create_page_from_markdown"],
+    tools: [
+      "notion_append_markdown",
+      "notion_create_page_from_markdown",
+      "notion_retrieve_bot_user",
+    ],
     blocks: [],
   },
 

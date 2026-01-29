@@ -144,14 +144,20 @@ describe("Preset Definitions", () => {
           t.includes("update") ||
           t.includes("delete") ||
           t.includes("create") ||
-          t.includes("append")
+          t.includes("append") ||
+          t === "notion_retrieve_bot_user" // Bot user is metadata, not content read
       )
     ).toBe(true);
   });
 
-  test("write-only preset has no read tools", () => {
+  test("write-only preset has no content read tools", () => {
     const preset = PRESETS["write-only"];
-    expect(preset.tools.some((t) => t.includes("retrieve"))).toBe(false);
+    const contentReadTools = preset.tools.filter(
+      (t) =>
+        t.includes("retrieve") &&
+        t !== "notion_retrieve_bot_user" // Bot user is metadata
+    );
+    expect(contentReadTools).toEqual([]);
     expect(preset.tools.some((t) => t.includes("query"))).toBe(false);
     expect(preset.tools.some((t) => t.includes("search"))).toBe(false);
   });
@@ -161,6 +167,7 @@ describe("Preset Definitions", () => {
     expect(preset.tools).toEqual([
       "notion_append_markdown",
       "notion_create_page_from_markdown",
+      "notion_retrieve_bot_user",
     ]);
   });
 
