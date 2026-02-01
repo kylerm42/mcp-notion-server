@@ -198,11 +198,12 @@ function extractCellValue(
 function formatTableCell(value: string, propertyType: string, maxWidth: number): string {
   if (!value) return "";
 
-  // Special handling for relation properties - show count
+  // Special handling for relation properties - show IDs (truncated if needed)
   if (propertyType === "relation") {
-    const relations = value.split(",").map(r => r.trim()).filter(r => r.length > 0);
-    const count = relations.length;
-    return count === 0 ? "" : count === 1 ? "1 relation" : `${count} relations`;
+    // Value comes from extractPropertyValue as backtick-wrapped IDs: `id1`, `id2`
+    // Return as-is, but respect maxWidth truncation below
+    // This gives more useful information than just "N relations"
+    if (!value || value.trim() === "") return "";
   }
 
   // Special handling for files - show count

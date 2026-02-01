@@ -159,7 +159,7 @@ describe("renderPageListAsTable", () => {
       expect(result).not.toContain("a".repeat(60));
     });
 
-    test("should show relation count instead of IDs", async () => {
+    test("should show relation IDs instead of count", async () => {
       const pages = [
         createMockPage("page1", "Test", {
           Device: {
@@ -183,11 +183,12 @@ describe("renderPageListAsTable", () => {
         null
       );
 
-      expect(result).toContain("3 relations");
-      expect(result).not.toContain("rel-1");
+      expect(result).toContain("`rel-1`");
+      expect(result).toContain("`rel-2`");
+      expect(result).toContain("`rel-3`");
     });
 
-    test("should show single relation as '1 relation'", async () => {
+    test("should show single relation ID", async () => {
       const pages = [
         createMockPage("page1", "Test", {
           Device: {
@@ -207,7 +208,47 @@ describe("renderPageListAsTable", () => {
         null
       );
 
-      expect(result).toContain("1 relation");
+      expect(result).toContain("`rel-1`");
+    });
+
+    test("should truncate long relation lists", async () => {
+      // Create many relations to exceed maxColumnWidth
+      const relations = Array.from({ length: 10 }, (_, i) => ({ 
+        id: `relation-id-${i}` 
+      }));
+
+      const pages = [
+        createMockPage("page1", "Test", {
+          Device: {
+            id: "dev1",
+            type: "relation",
+            relation: relations,
+          },
+        }),
+      ];
+
+      const result = await renderPageListAsTable(
+        pages,
+        ["Device"],
+        mockDataSourceId,
+        mockSchema,
+        false,
+        null,
+        50  // maxColumnWidth
+      );
+
+      // Should contain some IDs but be truncated with ...
+      expect(result).toContain("`relation-id-0`");
+      expect(result).toContain("...");
+      
+      // Extract the Device cell to verify it's actually truncated
+      const lines = result.split("\n");
+      const dataRow = lines.find(line => line.includes("relation-id-0"));
+      expect(dataRow).toBeDefined();
+      
+      const cells = dataRow!.split("|").map(c => c.trim());
+      const deviceCell = cells[2]; // Title is cells[1], Device is cells[2]
+      expect(deviceCell.length).toBeLessThanOrEqual(50);
     });
 
     test("should show file count instead of URLs", async () => {

@@ -648,6 +648,7 @@ Do you need complete property values?
 - **Limitation:** Cell values truncated at 50 chars
 - **Configuration:** Use `columns` parameter to control which columns are displayed
 - **Note:** This is now the default format when `response_format` is not specified
+- **Relation properties:** Displays page IDs (e.g., `` `page-id-1`, `page-id-2` ``) instead of just count, allowing direct page retrieval
 
 **Summary Format**
 - **Use when:** Need overview of large datasets, scanning for specific items, comparison operations
