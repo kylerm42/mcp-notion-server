@@ -1,6 +1,6 @@
 {
   "name": "@kylerm42/mcp-notion-server",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "MCP server for interacting with Notion API based on Node",
   "license": "MIT",
   "author": "Kosuke Suenaga (https://github.com/suekou/mcp-notion-server)",
