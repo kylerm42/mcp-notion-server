@@ -149,7 +149,7 @@ export const updatePagePropertiesTool: Tool = {
       properties: {
         type: "object",
         description:
-          "Properties to update. These correspond to the columns or fields in the database. For relation property values, provide an array of page IDs: {\"relation\": [{\"id\": \"page-id-1\"}]}",
+          'Properties to update. These correspond to the columns or fields in the database. For relation property values, provide an array of page IDs: {"relation": [{"id": "page-id-1"}]}',
       },
     },
     required: ["page_id", "properties"],
@@ -205,13 +205,15 @@ export const retrieveBotUserTool: Tool = {
 // Databases tools
 export const createDatabaseTool: Tool = {
   name: "notion_create_database",
-  description: "Create a database in Notion with an initial data source for storing pages",
+  description:
+    "Create a database in Notion with an initial data source for storing pages",
   inputSchema: {
     type: "object",
     properties: {
       parent: {
         type: "object",
-        description: "Parent object of the database (page_id, database_id, or workspace)",
+        description:
+          "Parent object of the database (page_id, database_id, or workspace)",
       },
       title: {
         type: "array",
@@ -226,7 +228,8 @@ export const createDatabaseTool: Tool = {
       },
       icon: {
         type: "object",
-        description: "Icon object for the database (emoji or external/file URL).",
+        description:
+          "Icon object for the database (emoji or external/file URL).",
       },
       cover: {
         type: "object",
@@ -234,7 +237,8 @@ export const createDatabaseTool: Tool = {
       },
       initial_data_source: {
         type: "object",
-        description: "Configuration for the initial data source created with the database.",
+        description:
+          "Configuration for the initial data source created with the database.",
         properties: {
           properties: {
             type: "object",
@@ -309,7 +313,8 @@ Note: data_source_id can be obtained from notion_retrieve_database`,
     properties: {
       data_source_id: {
         type: "string",
-        description: "The ID of the data source to query." + commonIdDescription,
+        description:
+          "The ID of the data source to query." + commonIdDescription,
       },
       filter: {
         type: "object",
@@ -344,11 +349,9 @@ Note: data_source_id can be obtained from notion_retrieve_database`,
         enum: ["json", "summary", "table"],
         default: "table",
         description: `Response format for query results:
-- "table" (default): Markdown table with configurable columns - most token-efficient for human review (50+ pages, ~50 tokens/row)
-- "summary": Lightweight JSON format with ID, title, URL, and schema metadata (ideal for 200+ results, ~150 tokens/page)
-- "json": Full page objects with all properties (detailed processing, ~350 tokens/page, <50 pages recommended)
-
-Use "table" for human review and presentation, "summary" for scanning large datasets, "json" for detailed processing.`,
+- "table" (default): Markdown table with configurable columns - most token-efficient format. Should be used in most situations.
+- "summary": Lightweight JSON format with ID, title, URL, and schema metadata (ideal for very large data sets)
+- "json": Full page objects with all properties (for systematic parsing, large data sets may be truncated)`,
       },
       columns: {
         type: "array",
@@ -362,7 +365,8 @@ Use "table" for human review and presentation, "summary" for scanning large data
 
 export const retrieveDatabaseTool: Tool = {
   name: "notion_retrieve_database",
-  description: "Retrieve database metadata including list of available data sources",
+  description:
+    "Retrieve database metadata including list of available data sources",
   inputSchema: {
     type: "object",
     properties: {
@@ -378,7 +382,8 @@ export const retrieveDatabaseTool: Tool = {
 
 export const updateDatabaseTool: Tool = {
   name: "notion_update_database",
-  description: "Update database-level properties such as title, icon, cover, parent, and inline status",
+  description:
+    "Update database-level properties such as title, icon, cover, parent, and inline status",
   inputSchema: {
     type: "object",
     properties: {
@@ -394,7 +399,8 @@ export const updateDatabaseTool: Tool = {
       },
       icon: {
         type: "object",
-        description: "Icon object for the database (emoji or external/file URL).",
+        description:
+          "Icon object for the database (emoji or external/file URL).",
       },
       cover: {
         type: "object",
@@ -402,7 +408,8 @@ export const updateDatabaseTool: Tool = {
       },
       parent: {
         type: "object",
-        description: "Parent object to move the database (page_id, database_id, or workspace).",
+        description:
+          "Parent object to move the database (page_id, database_id, or workspace).",
       },
       is_inline: {
         type: "boolean",
@@ -427,7 +434,7 @@ export const createDataSourceItemTool: Tool = {
       properties: {
         type: "object",
         description:
-          "Properties of the new page. These should match the data source schema. For relation property values, provide an array of page IDs: {\"relation\": [{\"id\": \"page-id-1\"}]}",
+          'Properties of the new page. These should match the data source schema. For relation property values, provide an array of page IDs: {"relation": [{"id": "page-id-1"}]}',
       },
     },
     required: ["data_source_id", "properties"],
@@ -544,7 +551,8 @@ export const retrieveCommentsTool: Tool = {
 // Search tool
 export const searchTool: Tool = {
   name: "notion_search",
-  description: "Search pages or data sources by title in Notion. Note that databases may contain multiple data sources, which are returned as separate results.",
+  description:
+    "Search pages or data sources by title in Notion. Note that databases may contain multiple data sources, which are returned as separate results.",
   inputSchema: {
     type: "object",
     properties: {

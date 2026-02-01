@@ -625,26 +625,24 @@ When querying Notion data sources with `notion_query_data_source`, choose the ap
 ### Format Selection Decision Tree
 
 ```
-Is this for human review or presentation?
-├─ Yes → Use default TABLE format (optionally with columns parameter)
+Do you need systematic JSON parsing (jq, external tools)?
+├─ Yes → Use JSON format (optionally with columns to reduce tokens)
 └─ No → Continue to next question
 
 Is result set large (>100 pages)?
 ├─ Yes → Use SUMMARY format for efficient scanning
-└─ No → Continue to next question
+└─ No → Use default TABLE format (most token-efficient)
 
-Do you need complete property values?
-├─ Yes → Use JSON format (optionally with columns to reduce tokens)
-└─ No → Use TABLE or SUMMARY format
+Note: TABLE format works excellently for both LLMs and humans
 ```
 
 ### Format Characteristics
 
 **Table Format (Default, Most Token-Efficient)**
-- **Use when:** Human-readable output needed, presenting data for review, debugging
+- **Use when:** General queries, data review, LLM processing, human presentation
 - **Token cost:** ~50 tokens per row (for 5 columns) - **most efficient**
 - **Capacity:** 50+ pages per 25KB response (depends on column count)
-- **Best for:** Code review, documentation, data inspection, general queries
+- **Best for:** All-purpose format excellent for both LLM comprehension and human readability
 - **Limitation:** Cell values truncated at 50 chars
 - **Configuration:** Use `columns` parameter to control which columns are displayed
 - **Note:** This is now the default format when `response_format` is not specified
@@ -659,10 +657,10 @@ Do you need complete property values?
 - **Pattern:** Use with drill-down via `notion_retrieve_page` for full details
 
 **JSON Format**
-- **Use when:** Need complete data, detailed property analysis, programmatic processing
+- **Use when:** Need systematic JSON parsing with tools like jq, complete programmatic processing
 - **Token cost:** ~350 tokens per page (full properties)
 - **Capacity:** ~50 pages per 25KB response
-- **Best for:** Detailed processing, small queries, complete data export
+- **Best for:** Programmatic JSON processing, data export pipelines, systematic parsing
 - **Column filtering:** Use `columns` parameter to reduce token usage by filtering properties
 
 ### Code Examples

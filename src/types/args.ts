@@ -127,9 +127,9 @@ export interface QueryDataSourceArgs {
   format?: "json" | "markdown";
   /**
    * Response format for query results.
-   * - "table" (default): Markdown table, most token-efficient for human review
-   * - "summary": Lightweight JSON with minimal page data
-   * - "json": Full page objects with all properties
+   * - "table" (default): Markdown table, most token-efficient format. Excellent for both LLM comprehension and human readability.
+   * - "summary": Lightweight JSON with minimal page data for scanning large datasets
+   * - "json": Full page objects with all properties for systematic parsing (e.g., jq)
    */
   response_format?: string;  // "json" | "summary" | "table"
   /**
