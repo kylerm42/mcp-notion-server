@@ -19,6 +19,41 @@ import { transformResponse } from "../formats/transformer.js";
 import { logger } from "../logger.js";
 
 /**
+ * Filter JSON response to include only specified columns in page properties
+ * @param response Notion API list response
+ * @param columns Array of property names to include
+ * @returns Filtered response with only specified properties
+ */
+function filterJsonResponseColumns(response: any, columns: string[]): any {
+  if (!response.results || !Array.isArray(response.results)) {
+    return response;
+  }
+
+  const columnSet = new Set(columns);
+  
+  return {
+    ...response,
+    results: response.results.map((page: any) => {
+      if (!page.properties || typeof page.properties !== "object") {
+        return page;
+      }
+
+      const filteredProperties: Record<string, any> = {};
+      for (const [propName, propValue] of Object.entries(page.properties)) {
+        if (columnSet.has(propName)) {
+          filteredProperties[propName] = propValue;
+        }
+      }
+
+      return {
+        ...page,
+        properties: filteredProperties,
+      };
+    }),
+  };
+}
+
+/**
  * Start the MCP server
  */
 export async function startServer(
@@ -180,16 +215,18 @@ export async function startServer(
               throw new Error("Missing required argument: data_source_id");
             }
             
-            // Validate response_format if provided
-            if (queryArgs.response_format && 
-                !["json", "summary", "table"].includes(queryArgs.response_format)) {
+            // Apply default response_format
+            const responseFormat = queryArgs.response_format || "table";
+            
+            // Validate response_format
+            if (!["json", "summary", "table"].includes(responseFormat)) {
               return {
                 content: [
                   {
                     type: "text",
                     text: JSON.stringify({
                       error: "Invalid response_format",
-                      message: `response_format must be one of: "json", "summary", "table". Got: "${queryArgs.response_format}"`,
+                      message: `response_format must be one of: "json", "summary", "table". Got: "${responseFormat}"`,
                     }, null, 2),
                   },
                 ],
@@ -206,12 +243,12 @@ export async function startServer(
               queryArgs.page_size
             );
             
-            // Transform response if format specified
-            if (queryArgs.response_format && queryArgs.response_format !== "json") {
+            // Transform response based on format
+            if (responseFormat !== "json") {
               const transformed = await transformResponse(
                 result,
                 queryArgs.data_source_id,
-                queryArgs.response_format as "summary" | "table",
+                responseFormat as "summary" | "table",
                 notionClient,
                 queryArgs.columns
               );
@@ -221,7 +258,7 @@ export async function startServer(
                 content: [
                   {
                     type: "text",
-                    text: queryArgs.response_format === "table" 
+                    text: responseFormat === "table" 
                       ? transformed 
                       : JSON.stringify(transformed, null, 2)
                   },
@@ -229,8 +266,13 @@ export async function startServer(
               };
             }
             
-            // Default: return full JSON (backward compatible)
-            response = result;
+            // JSON format: apply column filtering if specified
+            if (queryArgs.columns && queryArgs.columns.length > 0) {
+              const filteredResult = filterJsonResponseColumns(result, queryArgs.columns);
+              response = filteredResult;
+            } else {
+              response = result;
+            }
             break;
           }
 

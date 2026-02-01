@@ -253,26 +253,34 @@ export const queryDataSourceTool: Tool = {
 
 Supports multiple response formats optimized for different use cases:
 
-**JSON Format (default):**
-- Complete page objects with all properties
-- Best for: Detailed processing, small queries (<50 pages)
-- Capacity: ~50 pages per response
-
-**Summary Format (response_format: "summary"):**
-- Lightweight page representations (ID, title, URL, timestamp)
-- Schema metadata provided once at top level
-- Best for: Scanning large datasets, data validation, synchronization
-- Capacity: 200+ pages per response (84.8% smaller than JSON)
-- Example use case: "List all pages to compare with external system"
-
-**Table Format (response_format: "table"):**
-- Markdown table with configurable columns
+**Table Format (default, most token-efficient for human review):**
+- Markdown table with configurable columns (~50 tokens per row)
 - Human-readable output ideal for code review and documentation
 - Best for: Data inspection, presenting results, debugging
 - Capacity: 50+ pages per response (depends on column count)
 - Example use case: "Show me all tasks grouped by status"
 
+**Summary Format (response_format: "summary"):**
+- Lightweight page representations (ID, title, URL, timestamp)
+- Schema metadata provided once at top level
+- Best for: Scanning large datasets, data validation, synchronization
+- Capacity: 200+ pages per response (84.8% smaller than JSON, ~150 tokens/page)
+- Example use case: "List all pages to compare with external system"
+
+**JSON Format (response_format: "json"):**
+- Complete page objects with all properties (~350 tokens per page)
+- Best for: Detailed processing, small queries (<50 pages)
+- Supports column filtering to reduce token usage
+- Capacity: ~50 pages per response
+
 **Examples:**
+
+Default table format with selected columns:
+{
+  "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+  "columns": ["Title", "Status", "Priority", "Assignee"],
+  "page_size": 50
+}
 
 Scan large dataset (200+ items):
 {
@@ -281,17 +289,11 @@ Scan large dataset (200+ items):
   "page_size": 100
 }
 
-Human-readable table with selected columns:
+JSON with column filtering for token efficiency:
 {
   "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
-  "response_format": "table",
-  "columns": ["Title", "Status", "Priority", "Assignee"],
-  "page_size": 50
-}
-
-Default JSON for detailed processing:
-{
-  "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+  "response_format": "json",
+  "columns": ["Title", "Status"],
   "filter": { "property": "Status", "select": { "equals": "Active" } },
   "page_size": 20
 }
@@ -340,17 +342,18 @@ Note: data_source_id can be obtained from notion_retrieve_database`,
       response_format: {
         type: "string",
         enum: ["json", "summary", "table"],
+        default: "table",
         description: `Response format for query results:
-- "json" (default): Full page objects with all properties
-- "summary": Lightweight format with ID, title, URL, and schema metadata (ideal for 200+ results)
-- "table": Markdown table with configurable columns (ideal for 50+ results, human-readable)
+- "table" (default): Markdown table with configurable columns - most token-efficient for human review (50+ pages, ~50 tokens/row)
+- "summary": Lightweight JSON format with ID, title, URL, and schema metadata (ideal for 200+ results, ~150 tokens/page)
+- "json": Full page objects with all properties (detailed processing, ~350 tokens/page, <50 pages recommended)
 
-Use "summary" for scanning large datasets, "table" for human review, "json" for detailed processing.`,
+Use "table" for human review and presentation, "summary" for scanning large datasets, "json" for detailed processing.`,
       },
       columns: {
         type: "array",
         items: { type: "string" },
-        description: `Property names to include as table columns (only applies when response_format is "table"). If omitted, all properties from the data source schema are included. Example: ["Title", "Status", "Type"]`,
+        description: `Property names to include in results (applies to "table" and "json" formats). For table format, controls columns displayed. For JSON format, filters which properties are included in each page's properties object, reducing token usage. If omitted, all properties from the data source schema are included. Example: ["Title", "Status", "Type"]`,
       },
     },
     required: ["data_source_id"],

@@ -625,46 +625,65 @@ When querying Notion data sources with `notion_query_data_source`, choose the ap
 ### Format Selection Decision Tree
 
 ```
-Is result set small (<50 pages)?
-├─ Yes → Use default JSON format (no response_format parameter)
-└─ No → Continue to next question
-
-Do you need complete property values for all items?
-├─ Yes → Use JSON format, implement pagination
-└─ No → Continue to next question
-
 Is this for human review or presentation?
-├─ Yes → Use TABLE format with selected columns
-└─ No → Use SUMMARY format for efficient scanning
+├─ Yes → Use default TABLE format (optionally with columns parameter)
+└─ No → Continue to next question
+
+Is result set large (>100 pages)?
+├─ Yes → Use SUMMARY format for efficient scanning
+└─ No → Continue to next question
+
+Do you need complete property values?
+├─ Yes → Use JSON format (optionally with columns to reduce tokens)
+└─ No → Use TABLE or SUMMARY format
 ```
 
 ### Format Characteristics
 
-**JSON Format (Default)**
-- **Use when:** Need complete data, small result sets (<50 pages), detailed property analysis
-- **Token cost:** ~350 tokens per page
-- **Capacity:** ~50 pages per 25KB response
-- **Best for:** Detailed processing, small queries, complete data export
+**Table Format (Default, Most Token-Efficient)**
+- **Use when:** Human-readable output needed, presenting data for review, debugging
+- **Token cost:** ~50 tokens per row (for 5 columns) - **most efficient**
+- **Capacity:** 50+ pages per 25KB response (depends on column count)
+- **Best for:** Code review, documentation, data inspection, general queries
+- **Limitation:** Cell values truncated at 50 chars
+- **Configuration:** Use `columns` parameter to control which columns are displayed
+- **Note:** This is now the default format when `response_format` is not specified
 
 **Summary Format**
 - **Use when:** Need overview of large datasets, scanning for specific items, comparison operations
-- **Token cost:** ~150 tokens per page (84.8% reduction)
+- **Token cost:** ~150 tokens per page (84.8% reduction vs JSON)
 - **Capacity:** 200+ pages per 25KB response
 - **Best for:** "List all" operations, data validation, synchronization checks
 - **Limitation:** Minimal property data (ID, title, URL, timestamp only)
 - **Pattern:** Use with drill-down via `notion_retrieve_page` for full details
 
-**Table Format**
-- **Use when:** Human-readable output needed, presenting data for review, debugging
-- **Token cost:** ~50 tokens per row (for 5 columns)
-- **Capacity:** 50+ pages per 25KB response (depends on column count)
-- **Best for:** Code review, documentation, data inspection
-- **Limitation:** Cell values truncated at 50 chars
-- **Configuration:** Use `columns` parameter to control width and token usage
+**JSON Format**
+- **Use when:** Need complete data, detailed property analysis, programmatic processing
+- **Token cost:** ~350 tokens per page (full properties)
+- **Capacity:** ~50 pages per 25KB response
+- **Best for:** Detailed processing, small queries, complete data export
+- **Column filtering:** Use `columns` parameter to reduce token usage by filtering properties
 
 ### Code Examples
 
-**Example 1: Scan large dataset for specific item**
+**Example 1: Default table format with selected columns**
+```typescript
+// Default behavior: returns Markdown table with specified columns
+const table = await notionClient.queryDataSource(
+  dataSourceId,
+  undefined,  // filter
+  undefined,  // sorts
+  undefined,  // start_cursor
+  50,         // page_size
+  undefined,  // response_format (defaults to "table")
+  ["Title", "Status", "Priority", "Assignee"]  // columns
+);
+
+// table is Markdown string, can be logged or saved
+console.log(table);
+```
+
+**Example 2: Scan large dataset for specific item**
 ```typescript
 // Step 1: Query with summary format
 const summary = await notionClient.queryDataSource(
@@ -686,24 +705,24 @@ if (target) {
 }
 ```
 
-**Example 2: Generate human-readable report**
+**Example 3: JSON format with column filtering for token efficiency**
 ```typescript
-// Query with table format and selected columns
-const table = await notionClient.queryDataSource(
+// Query with JSON format and column filtering
+const result = await notionClient.queryDataSource(
   dataSourceId,
-  undefined,
+  { property: "Status", select: { equals: "Active" } },
   undefined,
   undefined,
   50,
-  "table",  // response_format
-  ["Title", "Status", "Priority", "Assignee"]  // columns
+  "json",  // response_format
+  ["Title", "Status"]  // columns - filters properties to reduce tokens
 );
 
-// table is Markdown string, can be logged or saved
-console.log(table);
+// result.results contains page objects with only Title and Status properties
+// Other metadata (id, url, timestamps, etc.) is preserved
 ```
 
-**Example 3: Compare Notion data with external system**
+**Example 4: Compare Notion data with external system**
 ```typescript
 // Get all Notion page IDs with summary format
 const notionPages = await notionClient.queryDataSource(
@@ -755,18 +774,43 @@ When testing tools that use `notion_query_data_source`:
    };
    ```
 
-2. **Validate response structure** based on format:
+2. **Test default behavior** (table format):
    ```typescript
-   if (args.response_format === "summary") {
+   const mockArgs = {
+     data_source_id: "test-id",
+     // No response_format specified, should default to "table"
+     columns: ["Title", "Status"],
+     page_size: 50,
+   };
+   ```
+
+3. **Validate response structure** based on format:
+   ```typescript
+   const format = args.response_format || "table";  // Apply default
+   if (format === "summary") {
      expect(response).toHaveProperty("summary_mode");
      expect(response).toHaveProperty("schema");
-   } else if (args.response_format === "table") {
+   } else if (format === "table") {
      expect(typeof response).toBe("string");
      expect(response).toContain("| Title |");
+   } else if (format === "json") {
+     expect(response).toHaveProperty("results");
+     expect(Array.isArray(response.results)).toBe(true);
    }
    ```
 
-3. **Test token efficiency** by measuring byte sizes:
+4. **Test column filtering** for JSON format:
+   ```typescript
+   const mockArgs = {
+     data_source_id: "test-id",
+     response_format: "json",
+     columns: ["Title", "Status"],
+   };
+   // Verify that result properties only contain specified columns
+   expect(Object.keys(result.results[0].properties)).toEqual(["Title", "Status"]);
+   ```
+
+5. **Test token efficiency** by measuring byte sizes:
    ```typescript
    const size = Buffer.byteLength(JSON.stringify(response), "utf8");
    expect(size).toBeLessThan(25000);

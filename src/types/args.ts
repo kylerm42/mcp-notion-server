@@ -125,8 +125,21 @@ export interface QueryDataSourceArgs {
   start_cursor?: string;
   page_size?: number;
   format?: "json" | "markdown";
+  /**
+   * Response format for query results.
+   * - "table" (default): Markdown table, most token-efficient for human review
+   * - "summary": Lightweight JSON with minimal page data
+   * - "json": Full page objects with all properties
+   */
   response_format?: string;  // "json" | "summary" | "table"
-  columns?: string[];         // Property names for table columns
+  /**
+   * Property names to include in results.
+   * - For "table" format: Controls which columns are displayed
+   * - For "json" format: Filters page.properties to only include specified properties
+   * - For "summary" format: Ignored (summary always returns minimal data)
+   * If omitted, all properties are included.
+   */
+  columns?: string[];
 }
 
 export interface RetrieveDatabaseArgs {
