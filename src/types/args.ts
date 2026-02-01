@@ -125,6 +125,8 @@ export interface QueryDataSourceArgs {
   start_cursor?: string;
   page_size?: number;
   format?: "json" | "markdown";
+  response_format?: string;  // "json" | "summary" | "table"
+  columns?: string[];         // Property names for table columns
 }
 
 export interface RetrieveDatabaseArgs {

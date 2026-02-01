@@ -549,6 +549,166 @@ The project is organized in a modular way to improve maintainability and readabi
 - **markdown/**: Markdown conversion functionality.
   - **index.ts**: Logic for converting JSON responses to Markdown format.
 
+## Working with Large Datasets
+
+The Notion MCP server supports multiple response formats to efficiently handle large query results without hitting the 25KB MCP protocol limit.
+
+### Response Formats
+
+#### JSON Format (Default)
+
+Returns complete page objects with all properties. Best for detailed processing and small result sets (<50 pages).
+
+```json
+{
+  "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+  "page_size": 10
+}
+```
+
+**Response:** Full Notion API page objects (default behavior)
+
+#### Summary Format
+
+Returns lightweight page representations with schema metadata. Ideal for scanning large datasets (200+ pages fit in <25KB).
+
+```json
+{
+  "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+  "response_format": "summary",
+  "page_size": 100
+}
+```
+
+**Response Structure:**
+```json
+{
+  "object": "list",
+  "summary_mode": true,
+  "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+  "schema": {
+    "Status": { "type": "select" },
+    "Priority": { "type": "select" },
+    "Assignee": { "type": "people" }
+  },
+  "result_count": 100,
+  "results": [
+    {
+      "id": "page-id-1",
+      "title": "Task 1",
+      "url": "https://notion.so/...",
+      "last_edited_time": "2026-02-01T12:00:00.000Z"
+    }
+  ],
+  "has_more": true,
+  "next_cursor": "abc123",
+  "drill_down_hint": "Use notion_retrieve_page with page.id to get full property values"
+}
+```
+
+**Benefits:**
+- 84.8% size reduction vs. full JSON
+- Fits 200+ pages in <25KB
+- Schema provided once (not repeated per page)
+- Ideal for "list all" operations
+
+**Drill-Down Pattern:**
+```json
+// 1. Scan with summary format
+{ "data_source_id": "...", "response_format": "summary", "page_size": 100 }
+
+// 2. Identify items of interest from results
+
+// 3. Get full details for specific items
+{ "page_id": "page-id-1" }  // notion_retrieve_page
+```
+
+#### Table Format
+
+Returns Markdown table with configurable columns. Ideal for human-readable output and data review (50+ pages fit in <25KB).
+
+```json
+{
+  "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+  "response_format": "table",
+  "columns": ["Title", "Status", "Priority"],
+  "page_size": 50
+}
+```
+
+**Response:**
+````markdown
+# Data Source Query Results
+
+**Query Summary:**
+- Results: 50 (page 1+)
+- Data Source: `7600ebff-5e0d-42ee-974f-8a372aaa3770`
+
+## Results Table
+
+| Title | Status | Priority |
+|-------|--------|----------|
+| Task 1 | In Progress | High |
+| Task 2 | Done | Medium |
+| Task 3 | Todo | Low |
+
+## Pagination
+
+**Next Page:** Use `start_cursor: "abc123"` in next query
+
+## Drill-Down
+
+To view full properties for a specific item:
+```
+notion_retrieve_page({ page_id: "page-id-1" })
+```
+````
+
+**Column Selection:**
+- **Omit `columns`**: Includes ALL properties from schema
+- **Specify `columns`**: Filters to requested properties only
+
+**Benefits:**
+- Human-readable format
+- Supports up to 50+ pages with all columns
+- Automatic truncation for long values (50 chars)
+- Special formatting for relations ("3 relations"), files ("2 files")
+
+### When to Use Each Format
+
+| Scenario | Recommended Format | Reason |
+|----------|-------------------|--------|
+| List all items for comparison | `summary` | Fits 200+ items, provides overview |
+| Data validation/audit | `summary` | See all IDs and titles efficiently |
+| Human review/presentation | `table` | Readable, formatted, contextual |
+| Detailed property analysis | `json` (default) | Complete data, no information loss |
+| Small result sets (<50) | `json` (default) | No size constraints |
+| Initial scan → detailed drill-down | `summary` then `json` | Two-phase workflow |
+
+### Example Workflows
+
+**Workflow 1: Find and Update**
+```
+1. Query with summary format to find target items
+2. Filter to items matching criteria (client-side)
+3. Retrieve full details for matches (notion_retrieve_page)
+4. Update specific pages (notion_update_page)
+```
+
+**Workflow 2: Data Export**
+```
+1. Query with table format for human review
+2. Paginate through all results
+3. Export Markdown table to documentation
+```
+
+**Workflow 3: Synchronization**
+```
+1. Query with summary format to get all page IDs
+2. Compare with external system
+3. Fetch full details only for changed items
+```
+
 ## Tools
 
 All tools support the following optional parameter:

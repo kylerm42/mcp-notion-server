@@ -15,6 +15,7 @@ import { filterTools } from "../utils/index.js";
 import * as schemas from "../types/schemas.js";
 import * as markdownSchemas from "../types/markdown-schemas.js";
 import * as args from "../types/args.js";
+import { transformResponse } from "../formats/transformer.js";
 import { logger } from "../logger.js";
 
 /**
@@ -173,18 +174,63 @@ export async function startServer(
           }
 
           case "notion_query_data_source": {
-            const args = request.params
+            const queryArgs = request.params
               .arguments as unknown as args.QueryDataSourceArgs;
-            if (!args.data_source_id) {
+            if (!queryArgs.data_source_id) {
               throw new Error("Missing required argument: data_source_id");
             }
-            response = await notionClient.queryDataSource(
-              args.data_source_id,
-              args.filter,
-              args.sorts,
-              args.start_cursor,
-              args.page_size
+            
+            // Validate response_format if provided
+            if (queryArgs.response_format && 
+                !["json", "summary", "table"].includes(queryArgs.response_format)) {
+              return {
+                content: [
+                  {
+                    type: "text",
+                    text: JSON.stringify({
+                      error: "Invalid response_format",
+                      message: `response_format must be one of: "json", "summary", "table". Got: "${queryArgs.response_format}"`,
+                    }, null, 2),
+                  },
+                ],
+                isError: true,
+              };
+            }
+            
+            // Query the API
+            const result = await notionClient.queryDataSource(
+              queryArgs.data_source_id,
+              queryArgs.filter,
+              queryArgs.sorts,
+              queryArgs.start_cursor,
+              queryArgs.page_size
             );
+            
+            // Transform response if format specified
+            if (queryArgs.response_format && queryArgs.response_format !== "json") {
+              const transformed = await transformResponse(
+                result,
+                queryArgs.data_source_id,
+                queryArgs.response_format as "summary" | "table",
+                notionClient,
+                queryArgs.columns
+              );
+              
+              // Return transformed response as text
+              return {
+                content: [
+                  {
+                    type: "text",
+                    text: queryArgs.response_format === "table" 
+                      ? transformed 
+                      : JSON.stringify(transformed, null, 2)
+                  },
+                ],
+              };
+            }
+            
+            // Default: return full JSON (backward compatible)
+            response = result;
             break;
           }
 

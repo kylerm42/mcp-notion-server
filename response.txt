@@ -1,0 +1,964 @@
+{
+  "object": "list",
+  "results": [
+    {
+      "object": "page",
+      "id": "05c33250-29b4-4316-8e3b-3fa04240a037",
+      "created_time": "2023-01-18T00:09:00.000Z",
+      "last_edited_time": "2025-04-08T17:04:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "cover": null,
+      "icon": null,
+      "parent": {
+        "type": "data_source_id",
+        "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+        "database_id": "d96262d8-fe7c-40f2-864b-e2e9b053dd00"
+      },
+      "archived": false,
+      "in_trash": false,
+      "is_locked": false,
+      "properties": {
+        "Status": {
+          "id": "%3BxwW",
+          "type": "select",
+          "select": {
+            "id": "dNWU",
+            "name": "Installed",
+            "color": "green"
+          }
+        },
+        "Type": {
+          "id": "%3CZu%5C",
+          "type": "multi_select",
+          "multi_select": [
+            {
+              "id": "49b7c172-d28c-4fcb-9299-a075dea3cfc7",
+              "name": "Monitoring",
+              "color": "gray"
+            }
+          ]
+        },
+        "V1 Name": {
+          "id": "C%7BKm",
+          "type": "rich_text",
+          "rich_text": []
+        },
+        "Type V2": {
+          "id": "VI%5ED",
+          "type": "multi_select",
+          "multi_select": []
+        },
+        "V2 Name": {
+          "id": "ZWTw",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "2405f0b8-6f31-41ff-bcc3-9cc4de24b571"
+            }
+          ],
+          "has_more": false
+        },
+        "IP Address": {
+          "id": "%5CX%3A%3E",
+          "type": "url",
+          "url": "http://192.168.1.72"
+        },
+        "URL": {
+          "id": "m%60Kw",
+          "type": "url",
+          "url": "https://chewbacca.krm.dev"
+        },
+        "Relates To": {
+          "id": "r%3Dvp",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "1649699a-c618-4061-9fcc-47f7f99905fc"
+            }
+          ],
+          "has_more": false
+        },
+        "Device": {
+          "id": "xwWU",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "25759dcf-8ebf-4ece-b40d-8acad2e6b420"
+            }
+          ],
+          "has_more": false
+        },
+        "App": {
+          "id": "title",
+          "type": "title",
+          "title": [
+            {
+              "type": "text",
+              "text": {
+                "content": "Tautulli",
+                "link": null
+              },
+              "annotations": {
+                "bold": false,
+                "italic": false,
+                "strikethrough": false,
+                "underline": false,
+                "code": false,
+                "color": "default"
+              },
+              "plain_text": "Tautulli",
+              "href": null
+            }
+          ]
+        }
+      },
+      "url": "https://www.notion.so/Tautulli-05c3325029b443168e3b3fa04240a037",
+      "public_url": null
+    },
+    {
+      "object": "page",
+      "id": "0abec322-e024-4798-8511-677708bca80c",
+      "created_time": "2023-01-17T03:57:00.000Z",
+      "last_edited_time": "2025-04-08T17:04:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "cover": null,
+      "icon": null,
+      "parent": {
+        "type": "data_source_id",
+        "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+        "database_id": "d96262d8-fe7c-40f2-864b-e2e9b053dd00"
+      },
+      "archived": false,
+      "in_trash": false,
+      "is_locked": false,
+      "properties": {
+        "Status": {
+          "id": "%3BxwW",
+          "type": "select",
+          "select": {
+            "id": "dNWU",
+            "name": "Installed",
+            "color": "green"
+          }
+        },
+        "Type": {
+          "id": "%3CZu%5C",
+          "type": "multi_select",
+          "multi_select": [
+            {
+              "id": "1572cbc0-d9ec-4eec-99ad-67ea5d59efd4",
+              "name": "Management",
+              "color": "brown"
+            }
+          ]
+        },
+        "V1 Name": {
+          "id": "C%7BKm",
+          "type": "rich_text",
+          "rich_text": [
+            {
+              "type": "text",
+              "text": {
+                "content": "Chaos",
+                "link": null
+              },
+              "annotations": {
+                "bold": false,
+                "italic": false,
+                "strikethrough": false,
+                "underline": false,
+                "code": false,
+                "color": "default"
+              },
+              "plain_text": "Chaos",
+              "href": null
+            }
+          ]
+        },
+        "Type V2": {
+          "id": "VI%5ED",
+          "type": "multi_select",
+          "multi_select": []
+        },
+        "V2 Name": {
+          "id": "ZWTw",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "06bb3c32-d72b-4cff-bb07-574812d89276"
+            }
+          ],
+          "has_more": false
+        },
+        "IP Address": {
+          "id": "%5CX%3A%3E",
+          "type": "url",
+          "url": "http://192.168.1.72"
+        },
+        "URL": {
+          "id": "m%60Kw",
+          "type": "url",
+          "url": "bb8.l.krm.dev"
+        },
+        "Relates To": {
+          "id": "r%3Dvp",
+          "type": "relation",
+          "relation": [],
+          "has_more": false
+        },
+        "Device": {
+          "id": "xwWU",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "25759dcf-8ebf-4ece-b40d-8acad2e6b420"
+            }
+          ],
+          "has_more": false
+        },
+        "App": {
+          "id": "title",
+          "type": "title",
+          "title": [
+            {
+              "type": "text",
+              "text": {
+                "content": "VS Code Server",
+                "link": null
+              },
+              "annotations": {
+                "bold": false,
+                "italic": false,
+                "strikethrough": false,
+                "underline": false,
+                "code": false,
+                "color": "default"
+              },
+              "plain_text": "VS Code Server",
+              "href": null
+            }
+          ]
+        }
+      },
+      "url": "https://www.notion.so/VS-Code-Server-0abec322e02447988511677708bca80c",
+      "public_url": null
+    },
+    {
+      "object": "page",
+      "id": "0be843f4-cb0b-4bbc-b8ac-c579a046c0e1",
+      "created_time": "2023-01-18T00:04:00.000Z",
+      "last_edited_time": "2025-09-07T22:32:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "cover": null,
+      "icon": null,
+      "parent": {
+        "type": "data_source_id",
+        "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+        "database_id": "d96262d8-fe7c-40f2-864b-e2e9b053dd00"
+      },
+      "archived": false,
+      "in_trash": false,
+      "is_locked": false,
+      "properties": {
+        "Status": {
+          "id": "%3BxwW",
+          "type": "select",
+          "select": {
+            "id": "dNWU",
+            "name": "Installed",
+            "color": "green"
+          }
+        },
+        "Type": {
+          "id": "%3CZu%5C",
+          "type": "multi_select",
+          "multi_select": [
+            {
+              "id": "f2261f35-5559-4572-b92f-1f0110045dad",
+              "name": "Database",
+              "color": "red"
+            }
+          ]
+        },
+        "V1 Name": {
+          "id": "C%7BKm",
+          "type": "rich_text",
+          "rich_text": []
+        },
+        "Type V2": {
+          "id": "VI%5ED",
+          "type": "multi_select",
+          "multi_select": []
+        },
+        "V2 Name": {
+          "id": "ZWTw",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "8114ebf8-a9d5-4745-a107-4980acd0adcf"
+            }
+          ],
+          "has_more": false
+        },
+        "IP Address": {
+          "id": "%5CX%3A%3E",
+          "type": "url",
+          "url": "http://192.168.1.72:5432"
+        },
+        "URL": {
+          "id": "m%60Kw",
+          "type": "url",
+          "url": "https://coruscant.l.krm.dev"
+        },
+        "Relates To": {
+          "id": "r%3Dvp",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "4cb3a3c1-9cdc-418b-b652-23a74327d50c"
+            },
+            {
+              "id": "65d48dc8-b1c2-4d39-970c-901569ec7ad5"
+            },
+            {
+              "id": "464a6543-2c7b-43d5-9227-71354ad22481"
+            },
+            {
+              "id": "2352c83e-e352-801c-86d2-c67d8e7eed1e"
+            },
+            {
+              "id": "2372c83e-e352-8002-9663-ddfe5b08df84"
+            },
+            {
+              "id": "2672c83e-e352-80ae-bb8e-d2834ed7085d"
+            },
+            {
+              "id": "2e72c83e-e352-8073-bd67-cd8eeb9734ad"
+            }
+          ],
+          "has_more": false
+        },
+        "Device": {
+          "id": "xwWU",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "25759dcf-8ebf-4ece-b40d-8acad2e6b420"
+            }
+          ],
+          "has_more": false
+        },
+        "App": {
+          "id": "title",
+          "type": "title",
+          "title": [
+            {
+              "type": "text",
+              "text": {
+                "content": "Postgresql14",
+                "link": null
+              },
+              "annotations": {
+                "bold": false,
+                "italic": false,
+                "strikethrough": false,
+                "underline": false,
+                "code": false,
+                "color": "default"
+              },
+              "plain_text": "Postgresql14",
+              "href": null
+            }
+          ]
+        }
+      },
+      "url": "https://www.notion.so/Postgresql14-0be843f4cb0b4bbcb8acc579a046c0e1",
+      "public_url": null
+    },
+    {
+      "object": "page",
+      "id": "1252c83e-e352-80d1-b981-dfd5592c84ac",
+      "created_time": "2024-10-20T16:22:00.000Z",
+      "last_edited_time": "2025-04-30T14:27:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "cover": null,
+      "icon": null,
+      "parent": {
+        "type": "data_source_id",
+        "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+        "database_id": "d96262d8-fe7c-40f2-864b-e2e9b053dd00"
+      },
+      "archived": false,
+      "in_trash": false,
+      "is_locked": false,
+      "properties": {
+        "Status": {
+          "id": "%3BxwW",
+          "type": "select",
+          "select": {
+            "id": "vw^w",
+            "name": "Removed",
+            "color": "red"
+          }
+        },
+        "Type": {
+          "id": "%3CZu%5C",
+          "type": "multi_select",
+          "multi_select": [
+            {
+              "id": "~Z\\K",
+              "name": "Tools",
+              "color": "gray"
+            }
+          ]
+        },
+        "V1 Name": {
+          "id": "C%7BKm",
+          "type": "rich_text",
+          "rich_text": []
+        },
+        "Type V2": {
+          "id": "VI%5ED",
+          "type": "multi_select",
+          "multi_select": []
+        },
+        "V2 Name": {
+          "id": "ZWTw",
+          "type": "relation",
+          "relation": [],
+          "has_more": false
+        },
+        "IP Address": {
+          "id": "%5CX%3A%3E",
+          "type": "url",
+          "url": null
+        },
+        "URL": {
+          "id": "m%60Kw",
+          "type": "url",
+          "url": null
+        },
+        "Relates To": {
+          "id": "r%3Dvp",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "e93bab9f-e623-4318-bd36-a02312327f7b"
+            }
+          ],
+          "has_more": false
+        },
+        "Device": {
+          "id": "xwWU",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "25759dcf-8ebf-4ece-b40d-8acad2e6b420"
+            }
+          ],
+          "has_more": false
+        },
+        "App": {
+          "id": "title",
+          "type": "title",
+          "title": [
+            {
+              "type": "text",
+              "text": {
+                "content": "LinkWarden",
+                "link": null
+              },
+              "annotations": {
+                "bold": false,
+                "italic": false,
+                "strikethrough": false,
+                "underline": false,
+                "code": false,
+                "color": "default"
+              },
+              "plain_text": "LinkWarden",
+              "href": null
+            }
+          ]
+        }
+      },
+      "url": "https://www.notion.so/LinkWarden-1252c83ee35280d1b981dfd5592c84ac",
+      "public_url": null
+    },
+    {
+      "object": "page",
+      "id": "1272c83e-e352-8061-82d1-c8d932086cb1",
+      "created_time": "2024-10-22T20:55:00.000Z",
+      "last_edited_time": "2025-04-08T17:04:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "cover": null,
+      "icon": null,
+      "parent": {
+        "type": "data_source_id",
+        "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+        "database_id": "d96262d8-fe7c-40f2-864b-e2e9b053dd00"
+      },
+      "archived": false,
+      "in_trash": false,
+      "is_locked": false,
+      "properties": {
+        "Status": {
+          "id": "%3BxwW",
+          "type": "select",
+          "select": {
+            "id": "dNWU",
+            "name": "Installed",
+            "color": "green"
+          }
+        },
+        "Type": {
+          "id": "%3CZu%5C",
+          "type": "multi_select",
+          "multi_select": [
+            {
+              "id": "49b7c172-d28c-4fcb-9299-a075dea3cfc7",
+              "name": "Monitoring",
+              "color": "gray"
+            }
+          ]
+        },
+        "V1 Name": {
+          "id": "C%7BKm",
+          "type": "rich_text",
+          "rich_text": []
+        },
+        "Type V2": {
+          "id": "VI%5ED",
+          "type": "multi_select",
+          "multi_select": []
+        },
+        "V2 Name": {
+          "id": "ZWTw",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "fdf3559e-0ff6-4350-abde-f0087cc446e6"
+            }
+          ],
+          "has_more": false
+        },
+        "IP Address": {
+          "id": "%5CX%3A%3E",
+          "type": "url",
+          "url": "http://192.168.1.49:3001"
+        },
+        "URL": {
+          "id": "m%60Kw",
+          "type": "url",
+          "url": "bacta.l.krm.dev"
+        },
+        "Relates To": {
+          "id": "r%3Dvp",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "ea3f3760-46e4-4ed9-a6d8-55377426c352"
+            },
+            {
+              "id": "19d2c83e-e352-80c3-84f8-f5b197e998b3"
+            }
+          ],
+          "has_more": false
+        },
+        "Device": {
+          "id": "xwWU",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "851117b5-08e6-4b67-91b1-f748aba85475"
+            }
+          ],
+          "has_more": false
+        },
+        "App": {
+          "id": "title",
+          "type": "title",
+          "title": [
+            {
+              "type": "text",
+              "text": {
+                "content": "UptimeKuma",
+                "link": null
+              },
+              "annotations": {
+                "bold": false,
+                "italic": false,
+                "strikethrough": false,
+                "underline": false,
+                "code": false,
+                "color": "default"
+              },
+              "plain_text": "UptimeKuma",
+              "href": null
+            }
+          ]
+        }
+      },
+      "url": "https://www.notion.so/UptimeKuma-1272c83ee352806182d1c8d932086cb1",
+      "public_url": null
+    },
+    {
+      "object": "page",
+      "id": "1282c83e-e352-806f-a6d0-d32ea390e644",
+      "created_time": "2024-10-23T21:25:00.000Z",
+      "last_edited_time": "2025-04-08T17:04:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "cover": null,
+      "icon": null,
+      "parent": {
+        "type": "data_source_id",
+        "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+        "database_id": "d96262d8-fe7c-40f2-864b-e2e9b053dd00"
+      },
+      "archived": false,
+      "in_trash": false,
+      "is_locked": false,
+      "properties": {
+        "Status": {
+          "id": "%3BxwW",
+          "type": "select",
+          "select": {
+            "id": "dNWU",
+            "name": "Installed",
+            "color": "green"
+          }
+        },
+        "Type": {
+          "id": "%3CZu%5C",
+          "type": "multi_select",
+          "multi_select": [
+            {
+              "id": "vxsJ",
+              "name": "Smart Home",
+              "color": "blue"
+            }
+          ]
+        },
+        "V1 Name": {
+          "id": "C%7BKm",
+          "type": "rich_text",
+          "rich_text": []
+        },
+        "Type V2": {
+          "id": "VI%5ED",
+          "type": "multi_select",
+          "multi_select": []
+        },
+        "V2 Name": {
+          "id": "ZWTw",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "a76aced8-b7c3-4c49-b8e6-30dc7d3fcce3"
+            }
+          ],
+          "has_more": false
+        },
+        "IP Address": {
+          "id": "%5CX%3A%3E",
+          "type": "url",
+          "url": "http://192.168.1.72"
+        },
+        "URL": {
+          "id": "m%60Kw",
+          "type": "url",
+          "url": "kallus.krm.dev"
+        },
+        "Relates To": {
+          "id": "r%3Dvp",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "ea3f3760-46e4-4ed9-a6d8-55377426c352"
+            },
+            {
+              "id": "4cb3a3c1-9cdc-418b-b652-23a74327d50c"
+            }
+          ],
+          "has_more": false
+        },
+        "Device": {
+          "id": "xwWU",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "25759dcf-8ebf-4ece-b40d-8acad2e6b420"
+            }
+          ],
+          "has_more": false
+        },
+        "App": {
+          "id": "title",
+          "type": "title",
+          "title": [
+            {
+              "type": "text",
+              "text": {
+                "content": "Frigate",
+                "link": null
+              },
+              "annotations": {
+                "bold": false,
+                "italic": false,
+                "strikethrough": false,
+                "underline": false,
+                "code": false,
+                "color": "default"
+              },
+              "plain_text": "Frigate",
+              "href": null
+            }
+          ]
+        }
+      },
+      "url": "https://www.notion.so/Frigate-1282c83ee352806fa6d0d32ea390e644",
+      "public_url": null
+    },
+    {
+      "object": "page",
+      "id": "1282c83e-e352-80fe-8ebb-f6503ba72fb7",
+      "created_time": "2024-10-23T20:46:00.000Z",
+      "last_edited_time": "2025-04-08T17:06:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "cover": null,
+      "icon": null,
+      "parent": {
+        "type": "data_source_id",
+        "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+        "database_id": "d96262d8-fe7c-40f2-864b-e2e9b053dd00"
+      },
+      "archived": false,
+      "in_trash": false,
+      "is_locked": false,
+      "properties": {
+        "Status": {
+          "id": "%3BxwW",
+          "type": "select",
+          "select": {
+            "id": "vw^w",
+            "name": "Removed",
+            "color": "red"
+          }
+        },
+        "Type": {
+          "id": "%3CZu%5C",
+          "type": "multi_select",
+          "multi_select": [
+            {
+              "id": "f740ccf9-8cc8-4fb5-8a1d-177f9e055589",
+              "name": "Communication",
+              "color": "yellow"
+            }
+          ]
+        },
+        "V1 Name": {
+          "id": "C%7BKm",
+          "type": "rich_text",
+          "rich_text": []
+        },
+        "Type V2": {
+          "id": "VI%5ED",
+          "type": "multi_select",
+          "multi_select": []
+        },
+        "V2 Name": {
+          "id": "ZWTw",
+          "type": "relation",
+          "relation": [],
+          "has_more": false
+        },
+        "IP Address": {
+          "id": "%5CX%3A%3E",
+          "type": "url",
+          "url": null
+        },
+        "URL": {
+          "id": "m%60Kw",
+          "type": "url",
+          "url": null
+        },
+        "Relates To": {
+          "id": "r%3Dvp",
+          "type": "relation",
+          "relation": [],
+          "has_more": false
+        },
+        "Device": {
+          "id": "xwWU",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "25759dcf-8ebf-4ece-b40d-8acad2e6b420"
+            }
+          ],
+          "has_more": false
+        },
+        "App": {
+          "id": "title",
+          "type": "title",
+          "title": [
+            {
+              "type": "text",
+              "text": {
+                "content": "Synapse",
+                "link": null
+              },
+              "annotations": {
+                "bold": false,
+                "italic": false,
+                "strikethrough": false,
+                "underline": false,
+                "code": false,
+                "color": "default"
+              },
+              "plain_text": "Synapse",
+              "href": null
+            }
+          ]
+        }
+      },
+      "url": "https://www.notion.so/Synapse-1282c83ee35280fe8ebbf6503ba72fb7",
+      "public_url": null
+    },
+    {
+      "object": "page",
+      "id": "13b2c83e-e352-8013-8f54-c7f7cfdc5a05",
+      "created_time": "2024-11-11T21:36:00.000Z",
+      "last_edited_time": "2025-04-08T17:04:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "b3888ab3-3a27-49a8-9098-605ee5fd6ede"
+      },
+      "cover": null,
+      "icon": null,
+      "parent": {
+        "type": "data_source_id",
+        "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+        "database_id": "d96262d8-fe7c-40f2-864b-e2e9b053dd00"
+      },
+      "archived": false,
+      "in_trash": false,
+      "is_locked": false,
+      "properties": {
+        "Status": {
+          "id": "%3BxwW",
+          "type": "select",
+          "select": {
+            "id": "dNWU",
+            "name": "Installed",
+            "color": "green"
+          }
+        },
+        "Type": {
+          "id": "%3CZu%5C",
+          "type": "multi_select",
+          "multi_select": [
+            {
+              "id": "~Z\\K",
+              "name": "Tools",
+              "color": "gray"
+            }
+          ]
+        },
+        "V1 Name": {
+          "id": "C%7BKm",
+          "type": "rich_text",
+          "rich_text": []
+        },
+        "Type V2": {
+          "id": "VI%5ED",
+          "type": "multi_select",
+          "multi_select": []
+        },
+        "V2 Name": {
+          "id": "ZWTw",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "e2717450-06dc-4439-b68d-8af8d7d1a7c5"
+            }
+          ],
+          "has_more": false
+        },
+        "IP Address": {
+          "id": "%5CX%3A%3E",
+          "type": "url",
+          "url": null
+        },
+        "URL": {
+          "id": "m%60Kw",
+          "type": "url",
+          "url": "https://lando.krm.dev"
+        },
+        "Relates To": {
+          "id": "r%3Dvp",
+          "type": "relation",
+          "relation": [],
+          "has_more": false
+        },
+        "Device": {
+          "id": "xwWU",
+          "type": "relation",
+          "relation": [
+            {
+              "id": "25759dcf-8eb
+
+[Content truncated: 297,124 characters omitted to prevent context overflow. Original length: 322,124 characters]

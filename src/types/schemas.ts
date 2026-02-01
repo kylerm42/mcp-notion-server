@@ -249,7 +249,59 @@ export const createDatabaseTool: Tool = {
 
 export const queryDataSourceTool: Tool = {
   name: "notion_query_data_source",
-  description: "Query a data source in Notion to retrieve pages with filtering and sorting",
+  description: `Query a data source in Notion to retrieve pages with filtering and sorting.
+
+Supports multiple response formats optimized for different use cases:
+
+**JSON Format (default):**
+- Complete page objects with all properties
+- Best for: Detailed processing, small queries (<50 pages)
+- Capacity: ~50 pages per response
+
+**Summary Format (response_format: "summary"):**
+- Lightweight page representations (ID, title, URL, timestamp)
+- Schema metadata provided once at top level
+- Best for: Scanning large datasets, data validation, synchronization
+- Capacity: 200+ pages per response (84.8% smaller than JSON)
+- Example use case: "List all pages to compare with external system"
+
+**Table Format (response_format: "table"):**
+- Markdown table with configurable columns
+- Human-readable output ideal for code review and documentation
+- Best for: Data inspection, presenting results, debugging
+- Capacity: 50+ pages per response (depends on column count)
+- Example use case: "Show me all tasks grouped by status"
+
+**Examples:**
+
+Scan large dataset (200+ items):
+{
+  "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+  "response_format": "summary",
+  "page_size": 100
+}
+
+Human-readable table with selected columns:
+{
+  "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+  "response_format": "table",
+  "columns": ["Title", "Status", "Priority", "Assignee"],
+  "page_size": 50
+}
+
+Default JSON for detailed processing:
+{
+  "data_source_id": "7600ebff-5e0d-42ee-974f-8a372aaa3770",
+  "filter": { "property": "Status", "select": { "equals": "Active" } },
+  "page_size": 20
+}
+
+Workflow pattern (scan → drill-down):
+1. Query with summary format to get all page IDs
+2. Filter results client-side to find items of interest
+3. Use notion_retrieve_page to get full details for specific pages
+
+Note: data_source_id can be obtained from notion_retrieve_database`,
   inputSchema: {
     type: "object",
     properties: {
@@ -284,6 +336,21 @@ export const queryDataSourceTool: Tool = {
       page_size: {
         type: "number",
         description: "Number of results per page (max 100)",
+      },
+      response_format: {
+        type: "string",
+        enum: ["json", "summary", "table"],
+        description: `Response format for query results:
+- "json" (default): Full page objects with all properties
+- "summary": Lightweight format with ID, title, URL, and schema metadata (ideal for 200+ results)
+- "table": Markdown table with configurable columns (ideal for 50+ results, human-readable)
+
+Use "summary" for scanning large datasets, "table" for human review, "json" for detailed processing.`,
+      },
+      columns: {
+        type: "array",
+        items: { type: "string" },
+        description: `Property names to include as table columns (only applies when response_format is "table"). If omitted, all properties from the data source schema are included. Example: ["Title", "Status", "Type"]`,
       },
     },
     required: ["data_source_id"],

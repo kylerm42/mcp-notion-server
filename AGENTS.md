@@ -618,6 +618,160 @@ When testing Markdown conversion tools:
 - Martian library (`@tryfabric/martian`) handles Markdown-to-Notion conversion
 - Error handling in tool handlers wraps `markdownToBlocks()` calls
 
+## Response Format Selection Guidelines
+
+When querying Notion data sources with `notion_query_data_source`, choose the appropriate `response_format` based on your use case.
+
+### Format Selection Decision Tree
+
+```
+Is result set small (<50 pages)?
+├─ Yes → Use default JSON format (no response_format parameter)
+└─ No → Continue to next question
+
+Do you need complete property values for all items?
+├─ Yes → Use JSON format, implement pagination
+└─ No → Continue to next question
+
+Is this for human review or presentation?
+├─ Yes → Use TABLE format with selected columns
+└─ No → Use SUMMARY format for efficient scanning
+```
+
+### Format Characteristics
+
+**JSON Format (Default)**
+- **Use when:** Need complete data, small result sets (<50 pages), detailed property analysis
+- **Token cost:** ~350 tokens per page
+- **Capacity:** ~50 pages per 25KB response
+- **Best for:** Detailed processing, small queries, complete data export
+
+**Summary Format**
+- **Use when:** Need overview of large datasets, scanning for specific items, comparison operations
+- **Token cost:** ~150 tokens per page (84.8% reduction)
+- **Capacity:** 200+ pages per 25KB response
+- **Best for:** "List all" operations, data validation, synchronization checks
+- **Limitation:** Minimal property data (ID, title, URL, timestamp only)
+- **Pattern:** Use with drill-down via `notion_retrieve_page` for full details
+
+**Table Format**
+- **Use when:** Human-readable output needed, presenting data for review, debugging
+- **Token cost:** ~50 tokens per row (for 5 columns)
+- **Capacity:** 50+ pages per 25KB response (depends on column count)
+- **Best for:** Code review, documentation, data inspection
+- **Limitation:** Cell values truncated at 50 chars
+- **Configuration:** Use `columns` parameter to control width and token usage
+
+### Code Examples
+
+**Example 1: Scan large dataset for specific item**
+```typescript
+// Step 1: Query with summary format
+const summary = await notionClient.queryDataSource(
+  dataSourceId,
+  undefined,
+  undefined,
+  undefined,
+  100,
+  "summary"  // response_format
+);
+
+// Step 2: Find target item
+const target = summary.results.find(p => p.title === "Target Item");
+
+// Step 3: Get full details
+if (target) {
+  const fullPage = await notionClient.retrievePage(target.id);
+  // Process full property values
+}
+```
+
+**Example 2: Generate human-readable report**
+```typescript
+// Query with table format and selected columns
+const table = await notionClient.queryDataSource(
+  dataSourceId,
+  undefined,
+  undefined,
+  undefined,
+  50,
+  "table",  // response_format
+  ["Title", "Status", "Priority", "Assignee"]  // columns
+);
+
+// table is Markdown string, can be logged or saved
+console.log(table);
+```
+
+**Example 3: Compare Notion data with external system**
+```typescript
+// Get all Notion page IDs with summary format
+const notionPages = await notionClient.queryDataSource(
+  dataSourceId,
+  undefined,
+  undefined,
+  undefined,
+  200,
+  "summary"
+);
+
+// Get external system IDs
+const externalIds = await fetchExternalSystemIds();
+
+// Find missing items
+const notionIds = new Set(notionPages.results.map(p => p.id));
+const missingInNotion = externalIds.filter(id => !notionIds.has(id));
+
+// Process missing items...
+```
+
+### Performance Considerations
+
+**Token Efficiency by Format:**
+- JSON: 350 tokens/page × 50 pages = 17,500 tokens (~25KB)
+- Summary: 150 tokens/page × 200 pages = 30,000 tokens (~23KB with schema)
+- Table: 50 tokens/row × 100 rows = 5,000 tokens (~8KB for 5 columns)
+
+**When to paginate:**
+- JSON: Always paginate for >50 pages
+- Summary: Can query 200+ pages in single request
+- Table: Can query 50-100 pages depending on column count
+
+**Memory considerations:**
+- Summary format reduces memory footprint by 84.8%
+- Table format has minimal memory overhead (renders to string)
+- JSON format requires full object retention
+
+### Testing with Response Formats
+
+When testing tools that use `notion_query_data_source`:
+
+1. **Mock the format parameter** in test arguments:
+   ```typescript
+   const mockArgs = {
+     data_source_id: "test-id",
+     response_format: "summary",
+     page_size: 100,
+   };
+   ```
+
+2. **Validate response structure** based on format:
+   ```typescript
+   if (args.response_format === "summary") {
+     expect(response).toHaveProperty("summary_mode");
+     expect(response).toHaveProperty("schema");
+   } else if (args.response_format === "table") {
+     expect(typeof response).toBe("string");
+     expect(response).toContain("| Title |");
+   }
+   ```
+
+3. **Test token efficiency** by measuring byte sizes:
+   ```typescript
+   const size = Buffer.byteLength(JSON.stringify(response), "utf8");
+   expect(size).toBeLessThan(25000);
+   ```
+
 ## Common Pitfalls to Avoid
 
 - ❌ Forgetting `.js` extensions in imports
