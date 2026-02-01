@@ -6,12 +6,12 @@
 export const commonIdDescription =
   "It should be a 32-character string (excluding hyphens) formatted as 8-4-4-4-12 with hyphens (-).";
 
-// Format parameter schema
+// Format parameter schema (only used for block content operations)
 export const formatParameter = {
   type: "string",
   enum: ["json", "markdown"],
   description:
-    "Specify the response format. 'json' returns the original data structure, 'markdown' returns a more readable format. Use 'markdown' when the user only needs to read the page and isn't planning to write or modify it. Use 'json' when the user needs to read the page with the intention of writing to or modifying it.",
+    "Response format for block content. 'markdown' provides token-efficient rendering of content blocks (paragraphs, headings, lists, etc.). 'json' returns the full block structure. Use 'markdown' for reading content, 'json' when you need to inspect or modify block properties.",
   default: "markdown",
 };
 

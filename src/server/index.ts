@@ -398,19 +398,32 @@ export async function startServer(
             throw new Error(`Unknown tool: ${request.params.name}`);
         }
 
-        // Check format parameter and return appropriate response
+        // Check if response contains block content that benefits from Markdown conversion
         const requestedFormat =
           (request.params.arguments as any)?.format || "markdown";
 
-        // Only convert to markdown if both conditions are met:
-        // 1. The requested format is markdown
-        // 2. The experimental markdown conversion is enabled via environment variable
-        if (enableMarkdownConversion && requestedFormat === "markdown") {
+        // Only convert to markdown if:
+        // 1. Markdown conversion is enabled via environment variable
+        // 2. The requested format is markdown
+        // 3. The response is block content (single block or list of blocks)
+        const isBlockContent =
+          response.object === "block" ||
+          (response.object === "list" &&
+            response.results &&
+            response.results.length > 0 &&
+            response.results[0].object === "block");
+
+        if (
+          enableMarkdownConversion &&
+          requestedFormat === "markdown" &&
+          isBlockContent
+        ) {
           const markdown = await notionClient.toMarkdown(response);
           return {
             content: [{ type: "text", text: markdown }],
           };
         } else {
+          // Return JSON for all metadata responses and non-block content
           return {
             content: [
               { type: "text", text: JSON.stringify(response, null, 2) },

@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
- * All API endpoints support both JSON and Markdown response formats.
- * Set the "format" parameter to "json" or "markdown" (default is "markdown").
- * - Use "markdown" for human-readable output when only reading content
- * - Use "json" when you need to process or modify the data programmatically
+ * Response Formats:
+ * - Block content operations (retrieve_block, retrieve_block_children) support both JSON and Markdown formats.
+ *   Set the "format" parameter to "json" or "markdown" (default is "markdown").
+ *   Markdown provides token-efficient rendering of content blocks.
+ * - All other operations (search, query, retrieve metadata) always return JSON for structured data access.
  *
  * Command-line Arguments:
  * --enabledTools: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_database")
