@@ -162,6 +162,21 @@ describe("Preset Definitions", () => {
     expect(preset.tools.some((t) => t.includes("search"))).toBe(false);
   });
 
+  test("write-only preset includes notion_update_page_properties", () => {
+    const preset = PRESETS["write-only"];
+    expect(preset.tools).toContain("notion_update_page_properties");
+  });
+
+  test("write-only preset includes notion_create_comment", () => {
+    const preset = PRESETS["write-only"];
+    expect(preset.tools).toContain("notion_create_comment");
+  });
+
+  test("write-only preset does not include invalid notion_update_page", () => {
+    const preset = PRESETS["write-only"];
+    expect(preset.tools).not.toContain("notion_update_page");
+  });
+
   test("write-markdown preset has markdown and data source creation tools", () => {
     const preset = PRESETS["write-markdown"];
     expect(preset.tools).toContain("notion_append_markdown");
