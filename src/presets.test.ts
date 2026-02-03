@@ -188,6 +188,16 @@ describe("Preset Definitions", () => {
     expect(preset.tools).not.toContain("notion_update_block");
   });
 
+  test("write-markdown preset includes notion_update_page_properties", () => {
+    const preset = PRESETS["write-markdown"];
+    expect(preset.tools).toContain("notion_update_page_properties");
+  });
+
+  test("write-markdown preset includes notion_create_comment", () => {
+    const preset = PRESETS["write-markdown"];
+    expect(preset.tools).toContain("notion_create_comment");
+  });
+
   test("read-write-markdown preset has read and markdown tools", () => {
     const preset = PRESETS["read-write-markdown"];
     expect(preset.tools).toContain("notion_retrieve_page");

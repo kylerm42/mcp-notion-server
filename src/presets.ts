@@ -48,6 +48,8 @@ export const PRESETS: Record<string, PresetConfig> = {
       "notion_append_markdown",
       "notion_create_page_from_markdown",
       "notion_create_data_source_item",
+      "notion_update_page_properties",
+      "notion_create_comment",
       "notion_retrieve_bot_user",
     ],
     blocks: [],
