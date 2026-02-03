@@ -6,9 +6,9 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { commonIdDescription, formatParameter } from "./common.js";
 
 export const appendMarkdownTool: Tool = {
-  name: "notion_append_markdown",
+  name: "append_markdown",
   description:
-    "Append Markdown content to a Notion block. Supports GitHub Flavored Markdown including paragraphs, headings, lists, tables, code blocks, equations, images, and callouts. For complex block types like toggles or columns, use notion_append_block_children.",
+    "Append Markdown content to a Notion block. Supports GitHub Flavored Markdown including paragraphs, headings, lists, tables, code blocks, equations, images, and callouts. For complex block types like toggles or columns, use append_block_children.",
   inputSchema: {
     type: "object",
     properties: {
@@ -28,7 +28,7 @@ export const appendMarkdownTool: Tool = {
 };
 
 export const createPageFromMarkdownTool: Tool = {
-  name: "notion_create_page_from_markdown",
+  name: "create_page_from_markdown",
   description:
     "Create a new Notion page with Markdown content. Ideal for creating pages with rich formatted content using simple Markdown syntax.",
   inputSchema: {

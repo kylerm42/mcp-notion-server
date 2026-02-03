@@ -96,7 +96,7 @@ export async function startServer(
         let response;
 
         switch (request.params.name) {
-          case "notion_append_block_children": {
+          case "append_block_children": {
             const args = request.params
               .arguments as unknown as args.AppendBlockChildrenArgs;
             if (!args.block_id || !args.children) {
@@ -111,7 +111,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_retrieve_block": {
+          case "retrieve_block": {
             const args = request.params
               .arguments as unknown as args.RetrieveBlockArgs;
             if (!args.block_id) {
@@ -121,7 +121,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_retrieve_block_children": {
+          case "retrieve_block_children": {
             const args = request.params
               .arguments as unknown as args.RetrieveBlockChildrenArgs;
             if (!args.block_id) {
@@ -135,7 +135,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_delete_block": {
+          case "delete_block": {
             const args = request.params
               .arguments as unknown as args.DeleteBlockArgs;
             if (!args.block_id) {
@@ -145,7 +145,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_update_block": {
+          case "update_block": {
             const args = request.params
               .arguments as unknown as args.UpdateBlockArgs;
             if (!args.block_id || !args.block) {
@@ -158,7 +158,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_retrieve_page": {
+          case "retrieve_page": {
             const args = request.params
               .arguments as unknown as args.RetrievePageArgs;
             if (!args.page_id) {
@@ -168,7 +168,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_update_page_properties": {
+          case "update_page_properties": {
             const args = request.params
               .arguments as unknown as args.UpdatePagePropertiesArgs;
             if (!args.page_id || !args.properties) {
@@ -183,7 +183,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_list_all_users": {
+          case "list_all_users": {
             const args = request.params
               .arguments as unknown as args.ListAllUsersArgs;
             response = await notionClient.listAllUsers(
@@ -193,7 +193,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_retrieve_user": {
+          case "retrieve_user": {
             const args = request.params
               .arguments as unknown as args.RetrieveUserArgs;
             if (!args.user_id) {
@@ -203,12 +203,12 @@ export async function startServer(
             break;
           }
 
-          case "notion_retrieve_bot_user": {
+          case "retrieve_bot_user": {
             response = await notionClient.retrieveBotUser();
             break;
           }
 
-          case "notion_query_data_source": {
+          case "query_data_source": {
             const queryArgs = request.params
               .arguments as unknown as args.QueryDataSourceArgs;
             if (!queryArgs.data_source_id) {
@@ -276,7 +276,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_create_database": {
+          case "create_database": {
             const args = request.params
               .arguments as unknown as args.CreateDatabaseArgs;
             response = await notionClient.createDatabase(
@@ -287,14 +287,14 @@ export async function startServer(
             break;
           }
 
-          case "notion_retrieve_database": {
+          case "retrieve_database": {
             const args = request.params
               .arguments as unknown as args.RetrieveDatabaseArgs;
             response = await notionClient.retrieveDatabase(args.database_id);
             break;
           }
 
-          case "notion_update_database": {
+          case "update_database": {
             const args = request.params
               .arguments as unknown as args.UpdateDatabaseArgs;
             response = await notionClient.updateDatabase(
@@ -308,7 +308,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_create_data_source_item": {
+          case "create_data_source_item": {
             const args = request.params
               .arguments as unknown as args.CreateDataSourceItemArgs;
             response = await notionClient.createDataSourceItem(
@@ -318,7 +318,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_retrieve_data_source": {
+          case "retrieve_data_source": {
             const args = request.params
               .arguments as unknown as args.RetrieveDataSourceArgs;
             if (!args.data_source_id) {
@@ -328,7 +328,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_update_data_source": {
+          case "update_data_source": {
             const args = request.params
               .arguments as unknown as args.UpdateDataSourceArgs;
             if (!args.data_source_id) {
@@ -342,7 +342,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_create_comment": {
+          case "create_comment": {
             const args = request.params
               .arguments as unknown as args.CreateCommentArgs;
 
@@ -360,7 +360,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_retrieve_comments": {
+          case "retrieve_comments": {
             const args = request.params
               .arguments as unknown as args.RetrieveCommentsArgs;
             if (!args.block_id) {
@@ -374,7 +374,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_search": {
+          case "search": {
             const args = request.params.arguments as unknown as args.SearchArgs;
             response = await notionClient.search(
               args.query,
@@ -386,7 +386,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_append_markdown": {
+          case "append_markdown": {
             const args = request.params.arguments as {
               block_id: string;
               markdown: string;
@@ -426,7 +426,7 @@ export async function startServer(
             break;
           }
 
-          case "notion_create_page_from_markdown": {
+          case "create_page_from_markdown": {
             const args = request.params.arguments as {
               parent: {
                 page_id?: string;

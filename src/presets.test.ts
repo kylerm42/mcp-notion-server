@@ -4,26 +4,26 @@ import { resolvePreset, PRESETS } from "./presets.js";
 describe("Preset Resolution", () => {
   test("should resolve pure preset", () => {
     const config = resolvePreset("read-only", undefined, undefined);
-    expect(config.enabledTools).toContain("notion_retrieve_page");
-    expect(config.enabledTools).not.toContain("notion_update_page");
+    expect(config.enabledTools).toContain("retrieve_page");
+    expect(config.enabledTools).not.toContain("update_page");
     expect(config.enabledBlocks.size).toBe(0);
   });
 
   test("should add tools to preset (union)", () => {
-    const config = resolvePreset("read-only", "notion_update_page", undefined);
-    expect(config.enabledTools).toContain("notion_retrieve_page");
-    expect(config.enabledTools).toContain("notion_update_page");
+    const config = resolvePreset("read-only", "update_page", undefined);
+    expect(config.enabledTools).toContain("retrieve_page");
+    expect(config.enabledTools).toContain("update_page");
   });
 
   test("should add multiple tools to preset", () => {
     const config = resolvePreset(
       "read-only",
-      "notion_update_page,notion_delete_block",
+      "update_page,delete_block",
       undefined
     );
-    expect(config.enabledTools).toContain("notion_retrieve_page");
-    expect(config.enabledTools).toContain("notion_update_page");
-    expect(config.enabledTools).toContain("notion_delete_block");
+    expect(config.enabledTools).toContain("retrieve_page");
+    expect(config.enabledTools).toContain("update_page");
+    expect(config.enabledTools).toContain("delete_block");
   });
 
   test("should override blocks", () => {
@@ -59,10 +59,10 @@ describe("Preset Resolution", () => {
   test("should handle no preset (backward compat)", () => {
     const config = resolvePreset(
       undefined,
-      "notion_retrieve_page",
+      "retrieve_page",
       "toggle"
     );
-    expect(config.enabledTools).toContain("notion_retrieve_page");
+    expect(config.enabledTools).toContain("retrieve_page");
     expect(config.enabledBlocks).toContain("toggle");
   });
 
@@ -74,11 +74,11 @@ describe("Preset Resolution", () => {
   test("should trim whitespace in tool lists", () => {
     const config = resolvePreset(
       "read-only",
-      " notion_update_page , notion_delete_block ",
+      " update_page , delete_block ",
       undefined
     );
-    expect(config.enabledTools).toContain("notion_update_page");
-    expect(config.enabledTools).toContain("notion_delete_block");
+    expect(config.enabledTools).toContain("update_page");
+    expect(config.enabledTools).toContain("delete_block");
   });
 
   test("should trim whitespace in block lists", () => {
@@ -92,8 +92,8 @@ describe("Preset Resolution", () => {
   });
 
   test("should filter out empty strings from tool lists", () => {
-    const config = resolvePreset("read-only", "notion_update_page,,", undefined);
-    expect(config.enabledTools).toContain("notion_update_page");
+    const config = resolvePreset("read-only", "update_page,,", undefined);
+    expect(config.enabledTools).toContain("update_page");
     expect(Array.from(config.enabledTools)).not.toContain("");
   });
 
@@ -145,7 +145,7 @@ describe("Preset Definitions", () => {
           t.includes("delete") ||
           t.includes("create") ||
           t.includes("append") ||
-          t === "notion_retrieve_bot_user" // Bot user is metadata, not content read
+          t === "retrieve_bot_user" // Bot user is metadata, not content read
       )
     ).toBe(true);
   });
@@ -155,60 +155,60 @@ describe("Preset Definitions", () => {
     const contentReadTools = preset.tools.filter(
       (t) =>
         t.includes("retrieve") &&
-        t !== "notion_retrieve_bot_user" // Bot user is metadata
+        t !== "retrieve_bot_user" // Bot user is metadata
     );
     expect(contentReadTools).toEqual([]);
     expect(preset.tools.some((t) => t.includes("query"))).toBe(false);
     expect(preset.tools.some((t) => t.includes("search"))).toBe(false);
   });
 
-  test("write-only preset includes notion_update_page_properties", () => {
+  test("write-only preset includes update_page_properties", () => {
     const preset = PRESETS["write-only"];
-    expect(preset.tools).toContain("notion_update_page_properties");
+    expect(preset.tools).toContain("update_page_properties");
   });
 
-  test("write-only preset includes notion_create_comment", () => {
+  test("write-only preset includes create_comment", () => {
     const preset = PRESETS["write-only"];
-    expect(preset.tools).toContain("notion_create_comment");
+    expect(preset.tools).toContain("create_comment");
   });
 
-  test("write-only preset does not include invalid notion_update_page", () => {
+  test("write-only preset does not include invalid update_page", () => {
     const preset = PRESETS["write-only"];
-    expect(preset.tools).not.toContain("notion_update_page");
+    expect(preset.tools).not.toContain("update_page");
   });
 
   test("write-markdown preset has markdown and data source creation tools", () => {
     const preset = PRESETS["write-markdown"];
-    expect(preset.tools).toContain("notion_append_markdown");
-    expect(preset.tools).toContain("notion_create_page_from_markdown");
-    expect(preset.tools).toContain("notion_create_data_source_item");
-    expect(preset.tools).toContain("notion_retrieve_bot_user");
+    expect(preset.tools).toContain("append_markdown");
+    expect(preset.tools).toContain("create_page_from_markdown");
+    expect(preset.tools).toContain("create_data_source_item");
+    expect(preset.tools).toContain("retrieve_bot_user");
     // Should not have raw block tools
-    expect(preset.tools).not.toContain("notion_append_block_children");
-    expect(preset.tools).not.toContain("notion_update_block");
+    expect(preset.tools).not.toContain("append_block_children");
+    expect(preset.tools).not.toContain("update_block");
   });
 
-  test("write-markdown preset includes notion_update_page_properties", () => {
+  test("write-markdown preset includes update_page_properties", () => {
     const preset = PRESETS["write-markdown"];
-    expect(preset.tools).toContain("notion_update_page_properties");
+    expect(preset.tools).toContain("update_page_properties");
   });
 
-  test("write-markdown preset includes notion_create_comment", () => {
+  test("write-markdown preset includes create_comment", () => {
     const preset = PRESETS["write-markdown"];
-    expect(preset.tools).toContain("notion_create_comment");
+    expect(preset.tools).toContain("create_comment");
   });
 
   test("read-write-markdown preset has read and markdown tools", () => {
     const preset = PRESETS["read-write-markdown"];
-    expect(preset.tools).toContain("notion_retrieve_page");
-    expect(preset.tools).toContain("notion_append_markdown");
-    expect(preset.tools).toContain("notion_create_page_from_markdown");
+    expect(preset.tools).toContain("retrieve_page");
+    expect(preset.tools).toContain("append_markdown");
+    expect(preset.tools).toContain("create_page_from_markdown");
   });
 
   test("read-write-markdown preset has no raw block write tools", () => {
     const preset = PRESETS["read-write-markdown"];
-    expect(preset.tools).not.toContain("notion_append_block_children");
-    expect(preset.tools).not.toContain("notion_update_block");
+    expect(preset.tools).not.toContain("append_block_children");
+    expect(preset.tools).not.toContain("update_block");
   });
 
   test("full preset has empty tool list", () => {

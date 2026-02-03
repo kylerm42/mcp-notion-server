@@ -13,7 +13,7 @@ import {
 
 // Blocks tools
 export const appendBlockChildrenTool: Tool = {
-  name: "notion_append_block_children",
+  name: "append_block_children",
   description:
     "Append new children blocks to a specified parent block in Notion. Requires insert content capabilities. You can optionally specify the 'after' parameter to append after a certain block.",
   inputSchema: {
@@ -42,7 +42,7 @@ export const appendBlockChildrenTool: Tool = {
 };
 
 export const retrieveBlockTool: Tool = {
-  name: "notion_retrieve_block",
+  name: "retrieve_block",
   description: "Retrieve a block from Notion",
   inputSchema: {
     type: "object",
@@ -58,7 +58,7 @@ export const retrieveBlockTool: Tool = {
 };
 
 export const retrieveBlockChildrenTool: Tool = {
-  name: "notion_retrieve_block_children",
+  name: "retrieve_block_children",
   description: "Retrieve the children of a block",
   inputSchema: {
     type: "object",
@@ -82,7 +82,7 @@ export const retrieveBlockChildrenTool: Tool = {
 };
 
 export const deleteBlockTool: Tool = {
-  name: "notion_delete_block",
+  name: "delete_block",
   description: "Delete a block in Notion",
   inputSchema: {
     type: "object",
@@ -97,7 +97,7 @@ export const deleteBlockTool: Tool = {
 };
 
 export const updateBlockTool: Tool = {
-  name: "notion_update_block",
+  name: "update_block",
   description:
     "Update the content of a block in Notion based on its type. The update replaces the entire value for a given field.",
   inputSchema: {
@@ -120,7 +120,7 @@ export const updateBlockTool: Tool = {
 
 // Pages tools
 export const retrievePageTool: Tool = {
-  name: "notion_retrieve_page",
+  name: "retrieve_page",
   description: "Retrieve a page from Notion",
   inputSchema: {
     type: "object",
@@ -135,7 +135,7 @@ export const retrievePageTool: Tool = {
 };
 
 export const updatePagePropertiesTool: Tool = {
-  name: "notion_update_page_properties",
+  name: "update_page_properties",
   description: "Update properties of a page or an item in a Notion database",
   inputSchema: {
     type: "object",
@@ -158,7 +158,7 @@ export const updatePagePropertiesTool: Tool = {
 
 // Users tools
 export const listAllUsersTool: Tool = {
-  name: "notion_list_all_users",
+  name: "list_all_users",
   description:
     "List all users in the Notion workspace. **Note:** This function requires upgrading to the Notion Enterprise plan and using an Organization API key to avoid permission errors.",
   inputSchema: {
@@ -177,7 +177,7 @@ export const listAllUsersTool: Tool = {
 };
 
 export const retrieveUserTool: Tool = {
-  name: "notion_retrieve_user",
+  name: "retrieve_user",
   description:
     "Retrieve a specific user by user_id in Notion. **Note:** This function requires upgrading to the Notion Enterprise plan and using an Organization API key to avoid permission errors.",
   inputSchema: {
@@ -193,7 +193,7 @@ export const retrieveUserTool: Tool = {
 };
 
 export const retrieveBotUserTool: Tool = {
-  name: "notion_retrieve_bot_user",
+  name: "retrieve_bot_user",
   description:
     "Retrieve the bot user associated with the current token in Notion",
   inputSchema: {
@@ -204,7 +204,7 @@ export const retrieveBotUserTool: Tool = {
 
 // Databases tools
 export const createDatabaseTool: Tool = {
-  name: "notion_create_database",
+  name: "create_database",
   description:
     "Create a database in Notion with an initial data source for storing pages",
   inputSchema: {
@@ -252,7 +252,7 @@ export const createDatabaseTool: Tool = {
 };
 
 export const queryDataSourceTool: Tool = {
-  name: "notion_query_data_source",
+  name: "query_data_source",
   description: `Query a data source in Notion to retrieve pages with filtering and sorting.
 
 Supports multiple response formats optimized for different use cases:
@@ -305,9 +305,9 @@ JSON with column filtering for token efficiency:
 Workflow pattern (scan → drill-down):
 1. Query with summary format to get all page IDs
 2. Filter results client-side to find items of interest
-3. Use notion_retrieve_page to get full details for specific pages
+3. Use retrieve_page to get full details for specific pages
 
-Note: data_source_id can be obtained from notion_retrieve_database`,
+Note: data_source_id can be obtained from retrieve_database`,
   inputSchema: {
     type: "object",
     properties: {
@@ -364,7 +364,7 @@ Note: data_source_id can be obtained from notion_retrieve_database`,
 };
 
 export const retrieveDatabaseTool: Tool = {
-  name: "notion_retrieve_database",
+  name: "retrieve_database",
   description:
     "Retrieve database metadata including list of available data sources",
   inputSchema: {
@@ -381,7 +381,7 @@ export const retrieveDatabaseTool: Tool = {
 };
 
 export const updateDatabaseTool: Tool = {
-  name: "notion_update_database",
+  name: "update_database",
   description:
     "Update database-level properties such as title, icon, cover, parent, and inline status",
   inputSchema: {
@@ -421,7 +421,7 @@ export const updateDatabaseTool: Tool = {
 };
 
 export const createDataSourceItemTool: Tool = {
-  name: "notion_create_data_source_item",
+  name: "create_data_source_item",
   description: "Create a new page in a Notion data source",
   inputSchema: {
     type: "object",
@@ -442,7 +442,7 @@ export const createDataSourceItemTool: Tool = {
 };
 
 export const retrieveDataSourceTool: Tool = {
-  name: "notion_retrieve_data_source",
+  name: "retrieve_data_source",
   description: "Retrieve data source schema and metadata",
   inputSchema: {
     type: "object",
@@ -458,7 +458,7 @@ export const retrieveDataSourceTool: Tool = {
 };
 
 export const updateDataSourceTool: Tool = {
-  name: "notion_update_data_source",
+  name: "update_data_source",
   description: "Update data source properties and schema configuration",
   inputSchema: {
     type: "object",
@@ -486,7 +486,7 @@ export const updateDataSourceTool: Tool = {
 
 // Comments tools
 export const createCommentTool: Tool = {
-  name: "notion_create_comment",
+  name: "create_comment",
   description:
     "Create a comment in Notion. This requires the integration to have 'insert comment' capabilities. You can either specify a page parent or a discussion_id, but not both.",
   inputSchema: {
@@ -522,7 +522,7 @@ export const createCommentTool: Tool = {
 };
 
 export const retrieveCommentsTool: Tool = {
-  name: "notion_retrieve_comments",
+  name: "retrieve_comments",
   description:
     "Retrieve a list of unresolved comments from a Notion page or block. Requires the integration to have 'read comment' capabilities.",
   inputSchema: {
@@ -550,7 +550,7 @@ export const retrieveCommentsTool: Tool = {
 
 // Search tool
 export const searchTool: Tool = {
-  name: "notion_search",
+  name: "search",
   description:
     "Search pages or data sources by title in Notion. Note that databases may contain multiple data sources, which are returned as separate results.",
   inputSchema: {
@@ -608,7 +608,7 @@ export function createBlockBasedTools(enabledBlocks: Set<string>) {
 
   const descriptionSuffix =
     enabledBlocks.size > 0
-      ? ` Enabled block types: ${Array.from(enabledBlocks).join(", ")}. For standard content, use notion_append_markdown.`
+      ? ` Enabled block types: ${Array.from(enabledBlocks).join(", ")}. For standard content, use append_markdown.`
       : "";
 
   return {

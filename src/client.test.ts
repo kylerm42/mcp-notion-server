@@ -18,15 +18,15 @@ vi.mock("node-fetch", () => {
 const mockInputSchema = { type: "object" as const };
 const mockTools = [
   {
-    name: "notion_retrieve_block",
+    name: "retrieve_block",
     inputSchema: mockInputSchema,
   },
   {
-    name: "notion_retrieve_page",
+    name: "retrieve_page",
     inputSchema: mockInputSchema,
   },
   {
-    name: "notion_query_data_source",
+    name: "query_data_source",
     inputSchema: mockInputSchema,
   },
 ];
@@ -302,13 +302,13 @@ describe("NotionClientWrapper", () => {
 
     test("should filter tools based on enabledTools", () => {
       const enabledToolsSet = new Set([
-        "notion_retrieve_block",
-        "notion_query_data_source",
+        "retrieve_block",
+        "query_data_source",
       ]);
       const result = filterTools(mockTools, enabledToolsSet);
       expect(result).toEqual([
-        { name: "notion_retrieve_block", inputSchema: mockInputSchema },
-        { name: "notion_query_data_source", inputSchema: mockInputSchema },
+        { name: "retrieve_block", inputSchema: mockInputSchema },
+        { name: "query_data_source", inputSchema: mockInputSchema },
       ]);
     });
 

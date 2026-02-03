@@ -183,7 +183,7 @@ describe("Block Schema Filtering", () => {
     expect(filtered.properties.type.description).toContain("toggle");
     expect(filtered.properties.type.description).toContain("column");
     expect(filtered.properties.type.description).toContain(
-      "notion_append_markdown"
+      "append_markdown"
     );
   });
 
@@ -193,7 +193,7 @@ describe("Block Schema Filtering", () => {
 
     expect(filtered.description).toContain("bookmark");
     expect(filtered.description).toContain("embed");
-    expect(filtered.description).toContain("notion_append_markdown");
+    expect(filtered.description).toContain("append_markdown");
   });
 
   test("should handle single enabled block", () => {

@@ -45,7 +45,7 @@ node build/index.js    # Run the compiled server directly
 ### Environment Variables
 - `NOTION_API_TOKEN` (required): Notion API integration token
 - `NOTION_PRESET` (optional): Predefined configuration preset. Valid values: `read-only`, `write-only`, `write-markdown`, `read-write-markdown`, `full`. If set, provides base tool and block configuration. Can be extended with `NOTION_ENABLED_TOOLS` (additive) and `NOTION_ENABLED_BLOCKS` (override). If not set, existing behavior is preserved (backward compatible).
-- `NOTION_ENABLED_TOOLS`: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_data_source"). When used with `NOTION_PRESET`, adds tools to preset's base (union). When used without preset, only these tools will be enabled.
+- `NOTION_ENABLED_TOOLS`: Comma-separated list of tools to enable (e.g. "retrieve_page,query_data_source"). When used with `NOTION_PRESET`, adds tools to preset's base (union). When used without preset, only these tools will be enabled.
 - `NOTION_ENABLED_BLOCKS`: Comma-separated list of block types to enable in raw JSON tools (e.g. "toggle,column,column_list"). When used with `NOTION_PRESET`, overrides preset's block configuration. Used for schema filtering to reduce token consumption. See "Block Schema Filtering Configuration" section below.
 - `NOTION_MARKDOWN_CONVERSION`: Set to "true" to enable Markdown conversion
 - `LOG_LEVEL` (optional): Controls logging verbosity. Valid values: `debug`, `info`, `warn`, `error`, `silent`. Default: `info`. All logs go to stderr to avoid interfering with MCP protocol on stdout.
@@ -313,24 +313,24 @@ The upgrade to API version 2025-09-03 introduced **breaking changes**:
    - All query/create/update operations target data sources, not databases
 
 2. **Tool Renames**
-   - `notion_query_database` → `notion_query_data_source`
-   - `notion_create_database_item` → `notion_create_data_source_item`
+   - `query_database` → `query_data_source` (reflects data source paradigm)
+   - `create_database_item` → `create_data_source_item`
    - Parameter change: `database_id` → `data_source_id` for these tools
 
 3. **Split Update Operations**
-   - `notion_update_database` - Now only for DB-level properties (title, icon, cover, parent, is_inline)
-   - `notion_update_data_source` - New tool for schema/property updates
+   - `update_database` - Now only for DB-level properties (title, icon, cover, parent, is_inline)
+   - `update_data_source` - New tool for schema/property updates
 
 4. **New Tools Added**
-   - `notion_retrieve_data_source` - Get data source schema and metadata
-   - `notion_update_data_source` - Update data source properties
+   - `retrieve_data_source` - Get data source schema and metadata
+   - `update_data_source` - Update data source properties
 
 5. **Search Filter Change**
    - Search filter value: `"database"` → `"data_source"`
 
 6. **Relation Properties**
    - Must use `data_source_id` instead of `database_id` in relation property definitions
-   - Applies to `notion_create_database` and `notion_update_data_source`
+   - Applies to `create_database` and `update_data_source`
 
 7. **No Backward Compatibility**
    - Old tool names are not supported
@@ -434,8 +434,8 @@ When both `NOTION_PRESET` and `NOTION_ENABLED_TOOLS` are set, tools are combined
 
 ```bash
 export NOTION_PRESET=read-only
-export NOTION_ENABLED_TOOLS=notion_update_page
-# Result: All read tools + notion_update_page
+export NOTION_ENABLED_TOOLS=update_page
+# Result: All read tools + update_page
 ```
 
 This allows "read-only + one write tool" configurations without creating new presets.
@@ -460,15 +460,15 @@ When testing preset functionality:
    ```typescript
    test("should resolve read-only preset", () => {
      const config = resolvePreset("read-only", undefined, undefined);
-     expect(config.enabledTools).toContain("notion_retrieve_page");
+     expect(config.enabledTools).toContain("retrieve_page");
    });
    ```
 
 2. **Test tool composition** - Preset + ENABLED_TOOLS
    ```typescript
    test("should add tools to preset", () => {
-     const config = resolvePreset("read-only", "notion_update_page", undefined);
-     expect(config.enabledTools).toContain("notion_update_page");
+     const config = resolvePreset("read-only", "update_page", undefined);
+     expect(config.enabledTools).toContain("update_page");
    });
    ```
 
@@ -490,7 +490,7 @@ When testing preset functionality:
 5. **Test backward compatibility** - No preset set
    ```typescript
    test("should handle no preset", () => {
-     const config = resolvePreset(undefined, "notion_retrieve_page", undefined);
+     const config = resolvePreset(undefined, "retrieve_page", undefined);
      // Should behave like existing implementation
    });
    ```
@@ -505,7 +505,7 @@ export NOTION_PRESET=read-only
 **Content writer with toggle support:**
 ```bash
 export NOTION_PRESET=read-write-markdown
-export NOTION_ENABLED_TOOLS=notion_append_block_children  # Add raw block tool
+export NOTION_ENABLED_TOOLS=append_block_children  # Add raw block tool
 export NOTION_ENABLED_BLOCKS=toggle  # Filter to only toggle
 ```
 
@@ -517,7 +517,7 @@ export NOTION_PRESET=full
 **Custom read-write with specific tools:**
 ```bash
 export NOTION_PRESET=read-only
-export NOTION_ENABLED_TOOLS=notion_update_page,notion_append_markdown
+export NOTION_ENABLED_TOOLS=update_page,append_markdown
 ```
 
 ## Block Schema Filtering Configuration
@@ -538,8 +538,8 @@ export NOTION_ENABLED_BLOCKS="toggle,column,column_list,bookmark,embed"
 
 This configuration:
 - Reduces tool schema context from ~22,000 tokens to ~6,000 tokens (73% reduction)
-- Uses Markdown tools (`notion_append_markdown`, `notion_create_page_from_markdown`) for standard content
-- Uses raw JSON tools (`notion_append_block_children`) only for complex layouts
+- Uses Markdown tools (`append_markdown`, `create_page_from_markdown`) for standard content
+- Uses raw JSON tools (`append_block_children`) only for complex layouts
 
 **Balanced Approach**
 
@@ -565,7 +565,7 @@ This maintains backward compatibility and enables all block types in raw JSON to
 - `paragraph`, `heading_1`, `heading_2`, `heading_3`
 - `bulleted_list_item`, `numbered_list_item`
 - `code`, `quote`, `table`
-- These are handled efficiently by `notion_append_markdown`
+- These are handled efficiently by `append_markdown`
 
 **Complex Blocks (include in NOTION_ENABLED_BLOCKS when needed):**
 - `toggle` - Collapsible sections
@@ -620,7 +620,7 @@ When testing Markdown conversion tools:
 
 ## Response Format Selection Guidelines
 
-When querying Notion data sources with `notion_query_data_source`, choose the appropriate `response_format` based on your use case.
+When querying Notion data sources with `query_data_source`, choose the appropriate `response_format` based on your use case.
 
 ### Format Selection Decision Tree
 
@@ -654,7 +654,7 @@ Note: TABLE format works excellently for both LLMs and humans
 - **Capacity:** 200+ pages per 25KB response
 - **Best for:** "List all" operations, data validation, synchronization checks
 - **Limitation:** Minimal property data (ID, title, URL, timestamp only)
-- **Pattern:** Use with drill-down via `notion_retrieve_page` for full details
+- **Pattern:** Use with drill-down via `retrieve_page` for full details
 
 **JSON Format**
 - **Use when:** Need systematic JSON parsing with tools like jq, complete programmatic processing
@@ -762,7 +762,7 @@ const missingInNotion = externalIds.filter(id => !notionIds.has(id));
 
 ### Testing with Response Formats
 
-When testing tools that use `notion_query_data_source`:
+When testing tools that use `query_data_source`:
 
 1. **Mock the format parameter** in test arguments:
    ```typescript

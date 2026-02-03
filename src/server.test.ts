@@ -24,7 +24,7 @@ describe("Markdown Tool Handler Integration", () => {
     mockClient = new NotionClientWrapper("fake-token");
   });
 
-  describe("notion_append_markdown handler", () => {
+  describe("append_markdown handler", () => {
     test("should convert markdown and call appendBlockChildren", async () => {
       const markdown = "# Hello\n\nWorld";
       const blockId = "test-block-id";
@@ -150,7 +150,7 @@ describe("Markdown Tool Handler Integration", () => {
     });
   });
 
-  describe("notion_create_page_from_markdown handler", () => {
+  describe("create_page_from_markdown handler", () => {
     test("should convert markdown and call createPage", async () => {
       const markdown = "# Content\n\nPage body";
       const parent = { page_id: "parent-id" };

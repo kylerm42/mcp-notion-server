@@ -233,7 +233,7 @@ describe("Integration: Summary Format Token Efficiency", () => {
     // Assert
     expect(summaryResponse.has_more).toBe(true);
     expect(summaryResponse.next_cursor).toBe("next-page-cursor");
-    expect(summaryResponse.drill_down_hint).toContain("notion_retrieve_page");
+    expect(summaryResponse.drill_down_hint).toContain("retrieve_page");
   });
 });
 
@@ -310,7 +310,7 @@ describe("Integration: Table Format Structure", () => {
     expect(tableResponse).toContain("More items available");
     
     // Check drill-down instructions
-    expect(tableResponse).toContain("notion_retrieve_page");
+    expect(tableResponse).toContain("retrieve_page");
   });
 
   test("should handle empty results gracefully", async () => {

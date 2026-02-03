@@ -63,14 +63,14 @@ or
 
 - `NOTION_API_TOKEN` (required): Your Notion API integration token.
 - `NOTION_PRESET` (optional): Predefined configuration preset. Valid values: `read-only`, `write-only`, `write-markdown`, `read-write-markdown`, `full`. See "Configuration Presets" section for details.
-- `NOTION_ENABLED_TOOLS`: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_data_source"). When used with `NOTION_PRESET`, adds tools to the preset's base (union). When used without preset, only the listed tools will be available. If not specified, all tools are enabled. This takes precedence over the `--enabledTools` command-line argument.
-- `NOTION_ENABLED_BLOCKS`: Comma-separated list of block types to enable in raw JSON tools (e.g. "toggle,column,column_list,bookmark,embed"). When used with `NOTION_PRESET`, overrides the preset's block configuration. When specified, only the listed block types will be available in tools like `notion_append_block_children`. If not specified, all block types are enabled. Use this with Markdown tools for optimal token efficiency. See the "Token Efficiency with Block Filtering" section for detailed configuration examples.
+- `NOTION_ENABLED_TOOLS`: Comma-separated list of tools to enable (e.g. "retrieve_page,query_data_source"). When used with `NOTION_PRESET`, adds tools to the preset's base (union). When used without preset, only the listed tools will be available. If not specified, all tools are enabled. This takes precedence over the `--enabledTools` command-line argument.
+- `NOTION_ENABLED_BLOCKS`: Comma-separated list of block types to enable in raw JSON tools (e.g. "toggle,column,column_list,bookmark,embed"). When used with `NOTION_PRESET`, overrides the preset's block configuration. When specified, only the listed block types will be available in tools like `append_block_children`. If not specified, all block types are enabled. Use this with Markdown tools for optimal token efficiency. See the "Token Efficiency with Block Filtering" section for detailed configuration examples.
 - `NOTION_MARKDOWN_CONVERSION`: Set to "true" to enable experimental Markdown conversion. This can significantly reduce token consumption when viewing content, but may cause issues when trying to edit page content.
 - `LOG_LEVEL` (optional): Controls logging verbosity. Valid values: `debug`, `info`, `warn`, `error`, `silent`. Default is `info`. All logs are written to stderr to avoid interfering with the MCP protocol on stdout.
 
 ## Command Line Arguments
 
-- `--enabledTools`: Comma-separated list of tools to enable (e.g. "notion_retrieve_page,notion_query_database"). When specified, only the listed tools will be available. If not specified, all tools are enabled. Note: The `NOTION_ENABLED_TOOLS` environment variable takes precedence over this flag.
+- `--enabledTools`: Comma-separated list of tools to enable (e.g. "retrieve_page,query_data_source"). When specified, only the listed tools will be available. If not specified, all tools are enabled. Note: The `NOTION_ENABLED_TOOLS` environment variable takes precedence over this flag.
 
 Read-only tools example using environment variable (recommended for MCP configs):
 
@@ -83,7 +83,7 @@ Read-only tools example using environment variable (recommended for MCP configs)
       "env": {
         "NOTION_API_TOKEN": "your-integration-token",
         "NOTION_MARKDOWN_CONVERSION": "true",
-        "NOTION_ENABLED_TOOLS": "notion_retrieve_block,notion_retrieve_block_children,notion_retrieve_page,notion_query_data_source,notion_retrieve_database,notion_retrieve_data_source,notion_search,notion_list_all_users,notion_retrieve_user,notion_retrieve_bot_user,notion_retrieve_comments"
+        "NOTION_ENABLED_TOOLS": "retrieve_block,retrieve_block_children,retrieve_page,query_data_source,retrieve_database,retrieve_data_source,search,list_all_users,retrieve_user,retrieve_bot_user,retrieve_comments"
       }
     }
   }
@@ -93,7 +93,7 @@ Read-only tools example using environment variable (recommended for MCP configs)
 Read-only tools example using command-line argument (for direct execution):
 
 ```bash
-node build/index.js --enabledTools=notion_retrieve_block,notion_retrieve_block_children,notion_retrieve_page,notion_query_data_source,notion_retrieve_database,notion_retrieve_data_source,notion_search,notion_list_all_users,notion_retrieve_user,notion_retrieve_bot_user,notion_retrieve_comments
+node build/index.js --enabledTools=retrieve_block,retrieve_block_children,retrieve_page,query_data_source,retrieve_database,retrieve_data_source,search,list_all_users,retrieve_user,retrieve_bot_user,retrieve_comments
 ```
 
 ## Configuration Presets
@@ -196,7 +196,7 @@ Start with a preset and add specific tools:
   "env": {
     "NOTION_API_TOKEN": "your-integration-token",
     "NOTION_PRESET": "read-only",
-    "NOTION_ENABLED_TOOLS": "notion_update_page"
+    "NOTION_ENABLED_TOOLS": "update_page"
   }
 }
 ```
@@ -287,7 +287,7 @@ This server provides Markdown-based tools that dramatically simplify content cre
 
 ### Available Markdown Tools
 
-#### `notion_append_markdown`
+#### `append_markdown`
 
 Append Markdown content to an existing Notion block.
 
@@ -295,7 +295,7 @@ Append Markdown content to an existing Notion block.
 
 ```json
 {
-  "name": "notion_append_markdown",
+  "name": "append_markdown",
   "arguments": {
     "block_id": "abc123",
     "markdown": "## New Section\n\nSome **bold** and *italic* text.\n\n- Item 1\n- Item 2"
@@ -313,7 +313,7 @@ Append Markdown content to an existing Notion block.
 - Images (with valid URLs)
 - Math equations (KaTeX syntax)
 
-#### `notion_create_page_from_markdown`
+#### `create_page_from_markdown`
 
 Create a new Notion page with Markdown content.
 
@@ -321,7 +321,7 @@ Create a new Notion page with Markdown content.
 
 ```json
 {
-  "name": "notion_create_page_from_markdown",
+  "name": "create_page_from_markdown",
   "arguments": {
     "parent": { "page_id": "parent-page-id" },
     "title": "Meeting Notes - Q1 Planning",
@@ -334,7 +334,7 @@ Create a new Notion page with Markdown content.
 
 ```json
 {
-  "name": "notion_create_page_from_markdown",
+  "name": "create_page_from_markdown",
   "arguments": {
     "parent": { "database_id": "database-id" },
     "markdown": "# Project Overview\n\nThis project focuses on...",
@@ -349,7 +349,7 @@ Create a new Notion page with Markdown content.
 
 ### When to Use Markdown vs. Raw JSON Tools
 
-**Use Markdown tools (`notion_append_markdown`, `notion_create_page_from_markdown`) for:**
+**Use Markdown tools (`append_markdown`, `create_page_from_markdown`) for:**
 - Paragraphs and headings
 - Lists (bulleted, numbered, task lists)
 - Tables
@@ -357,7 +357,7 @@ Create a new Notion page with Markdown content.
 - Simple formatted text (bold, italic, links)
 - Most content creation scenarios (95% of use cases)
 
-**Use raw JSON tools (`notion_append_block_children`, `notion_update_block`) for:**
+**Use raw JSON tools (`append_block_children`, `update_block`) for:**
 - Toggle blocks (collapsible sections)
 - Multi-column layouts
 - Embedded content (bookmarks, videos, files)
@@ -382,7 +382,7 @@ This configuration uses Markdown tools for standard content and enables only ess
         "NOTION_API_TOKEN": "your-integration-token",
         "NOTION_MARKDOWN_CONVERSION": "true",
         "NOTION_ENABLED_BLOCKS": "toggle,column,column_list,bookmark,embed",
-        "NOTION_ENABLED_TOOLS": "notion_append_markdown,notion_create_page_from_markdown,notion_append_block_children,notion_retrieve_page,notion_retrieve_block_children,notion_query_data_source,notion_create_data_source_item,notion_search"
+        "NOTION_ENABLED_TOOLS": "append_markdown,create_page_from_markdown,append_block_children,retrieve_page,retrieve_block_children,query_data_source,create_data_source_item,search"
       }
     }
   }
@@ -431,18 +431,18 @@ As of API version 2025-09-03, Notion introduced the **data source** concept:
 
 **For querying and creating items:**
 - Use `data_source_id`, not `database_id`
-- Tools: `notion_query_data_source`, `notion_create_data_source_item`
+- Tools: `query_data_source`, `create_data_source_item`
 
 **For database metadata:**
 - Use `database_id` for database-level operations
-- Tools: `notion_retrieve_database`, `notion_update_database`
+- Tools: `retrieve_database`, `update_database`
 
 ### How to Get Data Source IDs
 
 **Option 1: Via API (Recommended)**
 ```typescript
 // Retrieve database to get list of data sources
-const db = await tools.notion_retrieve_database({
+const db = await tools.retrieve_database({
   database_id: "your-database-id"
 });
 
@@ -460,16 +460,16 @@ const dataSourceId = db.data_sources.find(ds => ds.name === "Primary")?.id;
 **Typical Workflow:**
 ```typescript
 // Step 1: Discover the data source ID (do once, then cache it)
-const db = await tools.notion_retrieve_database({ database_id: "abc123" });
+const db = await tools.retrieve_database({ database_id: "abc123" });
 const DS_ID = db.data_sources[0].id;  // Save this!
 
 // Step 2: Use the data source ID for queries and item creation
-const results = await tools.notion_query_data_source({
+const results = await tools.query_data_source({
   data_source_id: DS_ID,
   filter: { property: "Status", select: { equals: "Active" } }
 });
 
-await tools.notion_create_data_source_item({
+await tools.create_data_source_item({
   data_source_id: DS_ID,
   properties: { "Name": { title: [{ text: { content: "New Item" } }] } }
 });
@@ -490,17 +490,17 @@ If you encounter permission errors:
 If you recently upgraded from an older version of this server:
 
 **"I don't have a data source ID, only a database ID"**
-- Call `notion_retrieve_database` with your database ID
+- Call `retrieve_database` with your database ID
 - The response includes a `data_sources` array with IDs and names
 - Use the `id` field from the data source you want to target
 
 **"My queries are failing after upgrade"**
-- Check if you're using the correct tool name: `notion_query_data_source` (not `notion_query_database`)
+- Check if you're using the correct tool name: `query_data_source` (not `query_database`)
 - Ensure you're passing `data_source_id`, not `database_id`
 - Verify the ID is a data source ID (starts with `ds-` typically), not a database ID
 
-**"What happened to notion_query_database?"**
-- Renamed to `notion_query_data_source` to reflect the new API paradigm
+**"What happened to query_database?"**
+- Renamed to `query_data_source` to reflect the new API paradigm
 - See [MIGRATION.md](./MIGRATION.md) for a complete migration guide
 
 **"Tool not found" errors**
@@ -602,7 +602,7 @@ Returns lightweight page representations with schema metadata. Ideal for scannin
   ],
   "has_more": true,
   "next_cursor": "abc123",
-  "drill_down_hint": "Use notion_retrieve_page with page.id to get full property values"
+  "drill_down_hint": "Use retrieve_page with page.id to get full property values"
 }
 ```
 
@@ -620,7 +620,7 @@ Returns lightweight page representations with schema metadata. Ideal for scannin
 // 2. Identify items of interest from results
 
 // 3. Get full details for specific items
-{ "page_id": "page-id-1" }  // notion_retrieve_page
+{ "page_id": "page-id-1" }  // retrieve_page
 ```
 
 #### Table Format
@@ -660,7 +660,7 @@ Returns Markdown table with configurable columns. Ideal for human-readable outpu
 
 To view full properties for a specific item:
 ```
-notion_retrieve_page({ page_id: "page-id-1" })
+retrieve_page({ page_id: "page-id-1" })
 ```
 ````
 
@@ -691,8 +691,8 @@ notion_retrieve_page({ page_id: "page-id-1" })
 ```
 1. Query with summary format to find target items
 2. Filter to items matching criteria (client-side)
-3. Retrieve full details for matches (notion_retrieve_page)
-4. Update specific pages (notion_update_page)
+3. Retrieve full details for matches (retrieve_page)
+4. Update specific pages (update_page)
 ```
 
 **Workflow 2: Data Export**
@@ -717,7 +717,7 @@ All tools support the following optional parameter:
 
 ### Markdown Content Tools
 
-1. `notion_append_markdown`
+1. `append_markdown`
 
    - Append Markdown content to a Notion block. Ideal for adding formatted text, lists, tables, and code blocks without complex JSON syntax.
    - Required inputs:
@@ -728,7 +728,7 @@ All tools support the following optional parameter:
    - Returns: Information about the appended blocks.
    - Supported Markdown features: Headings (H1-H3), paragraphs, bold/italic/strikethrough, bulleted/numbered lists, code blocks with syntax highlighting, tables, block quotes, images, math equations (KaTeX).
 
-2. `notion_create_page_from_markdown`
+2. `create_page_from_markdown`
 
    - Create a new Notion page with Markdown content. Simplifies page creation by using familiar Markdown syntax.
    - Required inputs:
@@ -744,23 +744,23 @@ All tools support the following optional parameter:
 
 ### Raw Block Tools
 
-3. `notion_append_block_children`
+3. `append_block_children`
 
    - Append child blocks to a parent block using raw JSON block objects. Use this for complex block types not supported by Markdown (toggles, columns, embeds).
    - Required inputs:
      - `block_id` (string): The ID of the parent block.
      - `children` (array): Array of block objects to append. Each block must follow the Notion block schema.
    - Returns: Information about the appended blocks.
-   - Note: When `NOTION_ENABLED_BLOCKS` is set, only the specified block types will be available in the schema. For standard content (paragraphs, headings, lists), use `notion_append_markdown` instead.
+   - Note: When `NOTION_ENABLED_BLOCKS` is set, only the specified block types will be available in the schema. For standard content (paragraphs, headings, lists), use `append_markdown` instead.
 
-4. `notion_retrieve_block`
+4. `retrieve_block`
 
    - Retrieve information about a specific block.
    - Required inputs:
      - `block_id` (string): The ID of the block to retrieve.
    - Returns: Detailed information about the block.
 
-5. `notion_retrieve_block_children`
+5. `retrieve_block_children`
 
    - Retrieve the children of a specific block.
    - Required inputs:
@@ -770,21 +770,21 @@ All tools support the following optional parameter:
      - `page_size` (number, default: 100, max: 100): Number of blocks to retrieve.
    - Returns: List of child blocks.
 
-6. `notion_delete_block`
+6. `delete_block`
 
    - Delete a specific block.
    - Required inputs:
      - `block_id` (string): The ID of the block to delete.
    - Returns: Confirmation of the deletion.
 
-7. `notion_retrieve_page`
+7. `retrieve_page`
 
    - Retrieve information about a specific page.
    - Required inputs:
      - `page_id` (string): The ID of the page to retrieve.
    - Returns: Detailed information about the page.
 
-8. `notion_update_page_properties`
+8. `update_page_properties`
 
    - Update properties of a page.
    - Required inputs:
@@ -794,7 +794,7 @@ All tools support the following optional parameter:
 
 ### Database and Data Source Tools
 
-9. `notion_create_database`
+9. `create_database`
 
    - Create a new database with an initial data source for storing pages.
    - Required inputs:
@@ -806,7 +806,7 @@ All tools support the following optional parameter:
      - `cover` (object): Cover image object for the database.
    - Returns: Information about the created database including the initial data source.
 
-8. `notion_query_data_source`
+8. `query_data_source`
 
    - Query a data source in Notion to retrieve pages with filtering and sorting.
    - Required inputs:
@@ -817,9 +817,9 @@ All tools support the following optional parameter:
      - `start_cursor` (string): Pagination cursor for next page of results.
      - `page_size` (number, default: 100, max: 100): Number of results to retrieve.
    - Returns: List of pages from the data source matching the query.
-   - Note: Use `notion_retrieve_database` first to get the `data_source_id` from a database.
+   - Note: Use `retrieve_database` first to get the `data_source_id` from a database.
 
-9. `notion_retrieve_database`
+9. `retrieve_database`
 
    - Retrieve database metadata including list of available data sources.
    - Required inputs:
@@ -827,14 +827,14 @@ All tools support the following optional parameter:
    - Returns: Database information including `data_sources` array with IDs and names.
    - Use this to discover data source IDs for query and create operations.
 
-10. `notion_retrieve_data_source`
+10. `retrieve_data_source`
 
     - Retrieve data source schema and metadata.
     - Required inputs:
       - `data_source_id` (string): The ID of the data source to retrieve.
     - Returns: Detailed schema information for the data source including properties configuration.
 
-11. `notion_update_database`
+11. `update_database`
 
     - Update database-level properties such as title, icon, cover, parent, and inline status.
     - Required inputs:
@@ -846,9 +846,9 @@ All tools support the following optional parameter:
       - `parent` (object): Parent object to move the database.
       - `is_inline` (boolean): Whether the database is displayed inline on a page.
     - Returns: Information about the updated database.
-    - Note: For updating schema/properties, use `notion_update_data_source` instead.
+    - Note: For updating schema/properties, use `update_data_source` instead.
 
-12. `notion_update_data_source`
+12. `update_data_source`
 
     - Update data source properties and schema configuration.
     - Required inputs:
@@ -858,16 +858,16 @@ All tools support the following optional parameter:
       - `title` (array): New title for the data source as rich text array.
     - Returns: Information about the updated data source.
 
-13. `notion_create_data_source_item`
+13. `create_data_source_item`
 
     - Create a new page in a Notion data source.
     - Required inputs:
       - `data_source_id` (string): The ID of the data source to add the page to.
       - `properties` (object): Properties of the new page. These should match the data source schema. For relation property values, provide an array of page IDs: `{"relation": [{"id": "page-id-1"}]}`.
     - Returns: Information about the newly created page.
-    - Note: Use `notion_retrieve_database` first to get the `data_source_id` from a database.
+    - Note: Use `retrieve_database` first to get the `data_source_id` from a database.
 
-14. `notion_search`
+14. `search`
 
     - Search pages or data sources by title in Notion.
     - Optional inputs:
@@ -879,7 +879,7 @@ All tools support the following optional parameter:
     - Returns: List of matching pages or data sources.
     - Note: Databases may contain multiple data sources, which are returned as separate results.
 
-15. `notion_list_all_users`
+15. `list_all_users`
 
     - List all users in the Notion workspace.
     - Note: This function requires upgrading to the Notion Enterprise plan and using an Organization API key to avoid permission errors.
@@ -888,7 +888,7 @@ All tools support the following optional parameter:
       - page_size (number, max: 100): Number of users to retrieve.
     - Returns: A paginated list of all users in the workspace.
 
-16. `notion_retrieve_user`
+16. `retrieve_user`
 
     - Retrieve a specific user by user_id in Notion.
     - Note: This function requires upgrading to the Notion Enterprise plan and using an Organization API key to avoid permission errors.
@@ -896,12 +896,12 @@ All tools support the following optional parameter:
       - user_id (string): The ID of the user to retrieve.
     - Returns: Detailed information about the specified user.
 
-17. `notion_retrieve_bot_user`
+17. `retrieve_bot_user`
 
     - Retrieve the bot user associated with the current token in Notion.
     - Returns: Information about the bot user, including details of the person who authorized the integration.
 
-18. `notion_create_comment`
+18. `create_comment`
 
     - Create a comment in Notion.
     - Requires the integration to have 'insert comment' capabilities.
@@ -913,7 +913,7 @@ All tools support the following optional parameter:
       - `discussion_id` (string): An existing discussion thread ID.
     - Returns: Information about the created comment.
 
-19. `notion_retrieve_comments`
+19. `retrieve_comments`
     - Retrieve a list of unresolved comments from a Notion page or block.
     - Requires the integration to have 'read comment' capabilities.
     - Required inputs:
